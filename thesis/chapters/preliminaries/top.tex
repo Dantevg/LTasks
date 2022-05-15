@@ -1,0 +1,82 @@
+\section{Task Oriented Programming}\label{section-top}
+
+\textit{Task Oriented Programming} (TOP) is a programming paradigm used for developing interactive distributed applications with a high level of abstraction \cite{plasmeijer2012task}. TOP is centered around the concept of \textit{tasks}. A task in TOP is just like a task in the real world: a description of something that needs to be done, an abstract unit of work. A task can have an observable intermediate value and access to shared information. Some tasks are to be performed by a human and some can be done by a computer. By composing tasks in various ways, it is possible to create complex applications.
+% When a task is in progress, its value can already be observed.
+% They vary from simply displaying text to running an entire application.
+% The underlying technical details are taken care of automatically by the TOP framework.
+
+\subsection{Comparison to other paradigms}
+In procedural programming, you structure your code using \textit{procedures}. In object oriented programming you use \textit{objects}, and in functional programming you use \textit{functions}. Analogously, with task oriented programming you use \textit{tasks} to structure your code.
+
+In imperative programming, you tell the computer \textit{how to do} a computation. In functional programming, you tell it \textit{what needs to be done}. In task oriented programming, you tell it \textit{what the result needs to be} or \textit{how information relates to each other}.
+
+\subsection{TOP implementations}
+At the moment, there are two implementations of TOP: iTasks in the functional language Clean, and mTasks in Clean and C++. The latter one is designed for IoT devices which are constrained in their resource usage. Both of them are a shallowly-embedded domain-specific language (EDSL). In this thesis we will primarily be comparing against iTasks.
+
+A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and some form of user interface.
+
+% \newpage
+\subsection{Task value}\label{section-top-task-value}
+Tasks can have an \textit{intermediate value}. A task value can be in one of three states: \textbf{no value}, \textbf{unstable} value or \textbf{stable} value \cite[\S 4.3]{achten2013introduction}. A task can switch between no value and an unstable value, and it can switch to a stable value. Tasks with a stable value have a final result and do not change anymore. Even when a task has no stable value yet, its intermediate value can be observed. Figure \ref{fig:task_states} shows this graphically. Tasks can observe the value of other tasks.
+
+In iTasks, tasks can also throw \textit{exceptions}, implemented as returning an exception value \cite[\S 3.1.1]{plasmeijer2012task}. When it is clear that a task will never result in a meaningful value, it can raise an exception. This can happen for instance when a network connection fails.
+
+The task function in iTasks returns the task value and the task itself, among other values. The task value is modelled as an algebraic data type; it is either \textit{no value}, or a value together with a boolean signifying whether it is stable:
+
+\medskip
+\begin{minted}{clean}
+:: TaskValue a
+    = NoValue
+    | Value !a !Stability
+\end{minted}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[>={Stealth[scale=1.5, inset=0cm]}]
+        \node[state] (no_value)       at (0,3) [minimum size=2cm, align=center] {\textit{no}\\value};
+        \node[state] (unstable_value) at (4,3) [minimum size=2cm, align=center] {\textit{unstable}\\value};
+        \node[state] (stable_value)   at (2,0) [minimum size=2cm, align=center] {\textit{stable}\\value};
+        
+        \path[->] (no_value)       edge [bend right] node {} (unstable_value)
+                                   edge node {} (stable_value)
+                  (unstable_value) edge [bend right] node {} (no_value)
+                                   edge node {} (stable_value);
+    \end{tikzpicture}
+    \caption{The possible states of task values}
+    \label{fig:task_states}
+\end{figure}
+
+\subsection{Task composition}
+Tasks can be \textit{composed} in multiple ways, falling in one of these categories: \textbf{sequential} composition and \textbf{parallel} composition. With sequential composition (named \texttt{step} in iTasks), first task 1 is started before starting task 2 with the value of task 1. In parallel composition, both tasks 1 and 2 need to be done, or either task 1 or 2. There is a way to create tasks with a stable value, called \texttt{return} in iTasks. The value and type of a task can be transformed with iTasks' \texttt{@} operator.
+
+We will use the example of having breakfast, adapted from Naus \cite{naus2020assisting}. To make breakfast, you first make something to drink. This can be either tea or coffee. You also make something to eat, a sandwich in this example. You can do that already while you are waiting for your drink to be ready. When you have your drink and your sandwich, you can eat it. The whole operation of having breakfast can be seen and modelled as a task, composed of smaller tasks.
+
+The breakfast example using the combinators from the iTasks framework \mintinline{clean}{>>-} (sequential), \mintinline{clean}{-&&-} (parallel and) and \mintinline{clean}{-||-} (parallel or) looks like this:
+\begin{minted}{clean}
+(makeTea -||- makeCoffee) -&&- makeSandwich >>- eatBreakfast
+\end{minted}
+% Or using a function:
+% \begin{minted}{clean}
+% makeBreakfast :: Task Drink -> Task Food -> Task (Drink, Food)
+% makeBreakfast makeDrink makeFood = makeDrink -&&- makeFood
+
+% makeBreakfast (makeTea -||- makeCoffee) makeVegetableScramble
+%     >>- enjoyMorning
+% \end{minted}
+
+A task composed sequentially does not have to wait for the first task to complete before starting. It can even be the case that task 2 becomes stable when task 1 still has an unstable value. For example task 1 could give an overview of free hospital beds. Task 2 could then decide to continue (have a stable value) once there is a suitable bed available, while the overview of hospital beds will never reach a stable state. Or think of a task that waits for a specific time. Task 1 (a task that yields the current time) will always have an unstable value (because time keeps changing), but eventually the waiting task becomes stable.
+
+\subsection{Shared data sources}\label{section-top-sds}
+Tasks are \textit{distributed} and \textit{concurrent}. For instance, in a multi-user system, two tasks that are composed in parallel could be done by two different users at the same time. Note that a TOP implementation does not have to be a multi-user system. While iTasks is multi-user, mTasks is not (because having users makes little sense in an IoT environment).
+
+Sharing data between tasks is done with shared data sources like files, sensors or humans. These can interact with tasks. Not all shared data sources have to be both readable and writable; the current date and time are examples of read-only shared data sources.
+When two tasks are composed in parallel, they get a read-only shared data source that reflects the current value of each other \cite[\S 2.1]{plasmeijer2012task}.
+
+\subsection{User interface}
+Interaction of tasks with humans happens with interactive tasks called \textit{editors}. An editor task is a bridge between the internal world of tasks and the external real world.
+A TOP framework automatically generates an appropriate user interface with these editors. They also allow users to interact with shared data sources.
+% How the user interface is shown is independent from the task structure: a change in the tasks does not require you to change the layout, and a change in layout does not need the underlying task structure to change.
+
+An editor task never has a stable value. When an editor task is composed sequentially, even when the user has pressed a ``continue'' button and the sequential task has moved on to the next task, the editor stays unstable behind the scenes.
+
+User interfaces of combined tasks are composed of the user interfaces of the components. For example in iTasks, if two tasks assigned to the same user are combined in parallel, they are shown next to each other. \cite[\S 4.2.4]{naus2020assisting}

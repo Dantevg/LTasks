@@ -1,0 +1,66 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage{url}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{rutitlepage}
+
+\usepackage{todonotes}
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows.meta}
+\usepackage{minted}
+\setminted{fontsize=\footnotesize}
+\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}
+\renewcommand{\figurename}{Listing}
+\usepackage{caption}
+\usepackage{subcaption}
+\newcommand{\lua}{\mintinline{lua}}
+\newcommand{\clean}{\mintinline{clean}}
+% \setcounter{tocdepth}{1}
+
+\makeatletter %otherwise geometry resets everything
+\Gm@restore@org
+\makeatother
+
+\setlength{\itemsep}{0cm}
+\setlength{\voffset}{0cm}
+\setlength{\headheight}{0cm}
+\setlength{\topmargin}{0cm}
+\setlength{\extrarowheight}{3pt} %for superscripts in tabular
+\setlength{\arraycolsep}{4pt}
+\lstset{basicstyle = \footnotesize, breaklines = true}
+
+\begin{document}
+
+\maketitleru[
+  layout=traditional,
+	authors={Dante van Gemert\\s1032684},
+	date={\today},
+	others={%
+		{First supervisor/assessor:}{dr. Peter Achten},
+		{Second assessor:}{dr. Pieter Koopman}},
+	course={Bachelor's Thesis Computing Science},
+	title={Task Oriented Programming in Lua},
+% 	subtitle={Subtitle if you like},
+]
+
+
+\input{chapters/abstract}
+
+\tableofcontents
+
+\input{chapters/introduction}
+\input{chapters/preliminaries}
+\input{chapters/research}
+\input{chapters/relatedwork}
+\input{chapters/conclusions}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\appendix
+\input{chapters/appendix}
+
+\end{document}

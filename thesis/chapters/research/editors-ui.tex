@@ -1,0 +1,35 @@
+\section{Editors and user interface}\label{section-editors-ui}
+There are many different ways of interfacing with users. iTasks uses a webpage for instance. But there are other graphical interfaces, as well as non-graphical ones. They all differ in usability for the user and ease of programming. We explored a JSON-based interface in section \ref{section-editors-lua}, which would be an especially non-user-friendly user interface.
+
+\subsection{HTML page}
+There is one well-known Lua librariy for and for interacting with the DOM through Javascript: Fengari\footnote{\url{https://fengari.io/}}. Fengari implements a Lua VM, so Lua code runs in the browser. We can also generate HTML using h5tk\footnote{\url{https://luarocks.org/modules/forflo/h5tk}} and serve it using
+LuaSocket\footnote{\url{https://luarocks.org/modules/lunarmodules/luasocket}},
+http\footnote{\url{https://luarocks.org/modules/daurnimator/http}},
+Fullmoon\footnote{\url{https://github.com/pkulchenko/fullmoon}},
+Lapis\footnote{\url{https://luarocks.org/modules/leafo/lapis}},
+Lor\footnote{\url{https://luarocks.org/modules/sumory/lor}},
+Sailor\footnote{\url{https://github.com/sailorproject/sailor}} or
+Pegasus\footnote{\url{https://luarocks.org/modules/evandrolg/pegasus}}.
+
+We will not be going this way, because while it may be the most user-friendly option and cross-platform, it costs the most amount of work to make and other options are usable enough for a proof of concept.
+
+\subsection{Native application}
+A native application looks about the same as a HTML page, but the difference is that interaction does not go via Javascript but via an API written in C. Lua native UI libraries:
+fltk4lua\footnote{\url{https://luarocks.org/modules/siffiejoe/fltk4lua}},
+TekUI\footnote{\url{https://luarocks.org/modules/luarocks/tekui}},
+AbsTK\footnote{\url{https://luarocks.org/modules/pedroalvesv/abstk}\label{footnote-abstk}},
+libuilua\footnote{\url{https://luarocks.org/modules/daurnimator/libuilua}},
+lui\footnote{\url{https://tset.de/lui/index.html}},
+lui\footnote{\url{https://github.com/zhaozg/lui}},
+wxLua\footnote{\url{https://github.com/pkulchenko/wxlua}}.
+
+A native application has about the same usability as a webpage and costs a bit less effort than one. For this proof of concept we will use a more simple form of user interface.
+
+\subsection{Terminal text-based UI}
+The third way of displaying tasks somewhat graphically is by using a terminal emulator. There are a couple libraries for this:
+AbsTK\footref{footnote-abstk},
+ltui\footnote{\url{https://luarocks.org/modules/waruqi/ltui}},
+lua-tui\footnote{\url{https://github.com/daurnimator/lua-tui}}. The first two are more complete UI-building libraries while the last one is more of a toolbox. AbsTK is not available for windows but I also have not been able to get it installed in Ubuntu on WSL yet.
+
+\subsection{Terminal command-line}
+Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this will be the initial interface of the proof of concept.

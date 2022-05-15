@@ -1,0 +1,39 @@
+\section{Task type representation}\label{section-task-types}
+We need some way to represent Lua types at runtime. This typing information is used by the step combinator's type match function to decide which task it should choose.
+Lua has the \lua{type} function that returns the type of the value passed as a string: \lua{type(42) == "number"}. The problem is that this does not give us detailed enough information for tables; \lua{type({10, 20})} and \lua{type({hello = "world"})} both result in just \lua{"table"}.
+
+Tasks and editors require a more elaborate system that can distinguish types of composite values. We need to consider the way these types are written, how they are represented or stored at runtime, and how they are compared against each other. We will compare multiple ways to solve the first two considerations now, how to compare types is left for section \ref{section-combinators-type-matching}.
+
+\subsection{LuaRocks libraries}
+There are a number of libraries that come up when searching for ``types'' in LuaRocks\footnote{\url{https://luarocks.org/}}, which is the most used Lua package manager. Three of them have some way to represent composite types at runtime.
+Typed\footnote{\url{https://luarocks.org/modules/SovietKitsune/typed}}, LuaStruct\footnote{\label{footnote-luastruct}\url{https://luarocks.org/modules/UlisseMini/luastruct}} and Struct.lua\footnote{\url{https://github.com/mpatraw/struct.lua}}.
+
+\subsubsection{Typed}
+Typed is a library to check a function's arguments. It gives formatted error messages containing information on what type was expected. The error messages are not interesting for this thesis, but how it represents composite types is. Arrays can be represented like the string \lua{"number[]"}, maps are written as \lua{"table<string, boolean>"}. For more complicated types, it uses schemas, for example \lua{typed.Schema('test'):field('name', 'string'):field('id', 'number')}. This represents a table that contains the string field \lua{name} and a numeric field \lua{id}.
+
+\subsubsection{LuaStruct}
+LuaStruct represents types at runtime by a default value. For example, from the LuaRocks description\footref{footnote-luastruct}:
+
+\medskip
+\begin{minted}{lua}
+local person = struct {
+    name = "default name",
+    age  = 0
+}
+\end{minted}
+
+This may be a very simple way to store composite types at runtime, but it has the obvious downside that every field must have a default value. For editors, this is not that big of a problem. But for specifying what type a task accepts, this can be very inconvenient. Furthermore, in this place the actual default value does not have any use: only its type will be used. A bigger problem for representing types of tables in this thesis is that this library is only about \textit{structs}; it does not have a way to represent arrays.
+
+\subsubsection{struct.lua}
+struct.lua works in a similar way to LuaStruct: you define a type by using a default value. As such, it suffers from the same issues as LuaStruct like not being able to represent arrays.
+
+\subsection{Lua extensions}
+\subsubsection{Typed Lua}
+Maidl, Mascarenhas and Ierusalimschy \cite{maidl2014typed} designed a gradually typed extension of Lua. ``does not insert runtime checks between dynamically and statically typed parts of the program,'' but it does have its own way of representing these types in code.
+
+\subsubsection{Pallene}
+Pallene, developed by Gualandi and Ierusalimschy \cite{gualandi2020pallene}, is a ``typed companion language to the Lua scripting language.'' It is ``very close to a typed subset of Lua.'' In contrast to Typed Lua, it does sometimes keep types for runtime type checks.
+
+\subsection{Other languages}
+\subsubsection{TypeScript}
+TypeScript\footnote{\url{https://www.typescriptlang.org/}} is a language that transpiles to JavaScript. Like Typed Lua, its types get removed at compile time. We can still learn from the way types are written, though.

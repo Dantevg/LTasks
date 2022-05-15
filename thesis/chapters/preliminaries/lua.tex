@@ -1,0 +1,233 @@
+\section{Lua}\label{section-lua}
+
+Lua is an interpreted and dynamically typed programming language. The website lists its selling points: Lua is claimed to be fast, portable, embeddable, powerful but simple, small and free \cite{luaabout}. Lua is \textit{fast} because the \mbox{LuaJIT} just-in-time implementation can yield performance that can be reasonably compared to that of C \cite[fig. 11]{gualandi2020pallene}. It is \textit{portable} since the Lua interpreter is written in plain C and can run on any device. Lua us built as an extension language, so it is \textit{embeddable} with the use of its C API. It is \textit{powerful but simple}: the language has little syntax and concepts, but it provides meta-mechanisms which let you implement features yourself. The language is \textit{small} since the interpreter and libraries take less than 800kB, and it is \textit{free} because it is distributed under the MIT license.
+
+The next subsections will cover the aspects and concepts of Lua that are most relevant for this thesis. Details that are not necessary are left out, but can be found in the reference manual \cite{luareferencemanual}.
+
+\newenvironment{quotenomargin}{\setlength{\leftmargini}{0em}\quotation}{\endquotation}
+
+\begin{figure}[ht]
+    \centering
+    \begin{subfigure}{\textwidth-4cm}
+        \begin{quotenomargin}
+        \noindent
+        \textit{Lua is a powerful, efficient, lightweight, embeddable scripting language. It supports procedural programming, object-oriented programming, functional programming, data-driven programming, and data description.}
+        \cite{luaabout}
+        \end{quotenomargin}
+    \end{subfigure}
+    \hspace{0.5cm}
+    \begin{subfigure}{3cm}
+        \includegraphics[width=3cm]{img/lua-256x256.png}
+        \caption*{The Lua logo}
+        % \label{fig:lua_logo}
+    \end{subfigure}
+\end{figure}
+
+\subsection{Where is Lua used?}
+Lua is described by the authors as an extensible extension language\cite{ierusalimschy1996lua}. This means that it is made to be extended (for instance with bindings to libraries written in C), and to be used within other applications.
+
+Lua is used for example as a language for making games (Roblox\footnote{\url{https://www.roblox.com/}}\textsuperscript{,}\footnote{\url{https://luau-lang.org/}}, Love2D\footnote{\url{https://love2d.org/}}), as a scripting language within games (Minecraft mods\footnote{\url{https://computercraft.cc/}}\textsuperscript{,}\footnote{\url{https://oc.cil.li/}}), as a scripting language in other programs (Adobe Photoshop Lightroom\footnote{\url{https://www.adobe.com/products/photoshop-lightroom.html}}, LuaTeX\footnote{\url{http://www.luatex.org/}}, OpenResty\footnote{\url{https://openresty.org/en/}}) and also in microcontrollers for IoT projects (NodeMCU\footnote{\url{https://nodemcu.readthedocs.io/en/release/}}).
+
+\subsection{Basics}
+Lua has 8 basic types: \texttt{nil}, \texttt{boolean}, \texttt{number}, \texttt{string}, \texttt{function}, \texttt{userdata}, \texttt{thread}, and \texttt{table} \cite[\S 2.1]{luareferencemanual}.
+
+Some interesting notes:
+The type \texttt{nil} (which has a single ``value'', \lua{nil}) signifies the absence of a value (\texttt{null} or \texttt{undefined} in other languages). Any variable or field with no value implicitly holds \lua{nil}, and a non-existing variable or field cannot be distinguished from one with an explicit \lua{nil} value.
+Lua has only a single \texttt{number} type, which internally switches from integers to floating point numbers automatically. In versions prior to 5.3, numbers were always floats. \texttt{userdata} is the type of data that comes from C, we can ignore it here.
+\texttt{function}, \texttt{thread} and \texttt{table} will be covered in depth in the next sections. All values are first-class: they can be stored in variables and tables, passed to functions and returned from functions.
+
+By default, variables are global. To make them local, you put \lua{local} in front of them: \lua{local localVar = "local"} instead of \lua{globalVar = "global"}. This also works for functions, though that is not as common. Lua supports parallel assignment: you can swap variables without using a temporary variable by writing \lua{x, y = y, x}.
+
+The types \texttt{table}, \texttt{function}, \texttt{thread} and \texttt{userdata} are reference types (the Lua manual calls them \textit{objects} \cite[\S 2.1]{luareferencemanual}). This means that \lua{{} == {}} evaluates to \lua{false} because they refer to two separate tables. However \lua{"" == ""} evaluates to \lua{true} because \texttt{string} is not a reference type.
+
+\subsection{Tables}
+Lua's main (and only) composite data structure is the table. A table is an associative array and fulfills the purposes of arrays, objects and maps in other languages. A table can store any type of key except \lua{nil}, and any type of value. Note that this means it is possible to have keys of reference types or \textit{objects} (such as tables, defined above). Having values stored by integer keys creates a kind of array. Since Lua is dynamically typed, a table can hold both integer keys/values and other type keys/values at the same time: a single table can function as both an array and a map. Indexing a table with an arbitrary type key uses square brackets (\lua{tbl[key]}). There is a shorthand for accessing string keys: \lua{tbl.key} is syntactic sugar for \lua{tbl["key"]}, for string keys that are valid identifiers (so no spaces)\todo{too specific, remove later}.
+% (only if \lua{key} is valid as an identifier, it cannot contain spaces for instance).
+
+Tables as arrays are 1-indexed, though nothing prevents you from assigning a value to key \lua{0} (or negative numbers). Removing an item from a table can be done by setting it to \lua{nil}, and attempting to access a non-existent field in a table results in \lua{nil}. Listing \ref{lst:lua_tables} shows an example of using tables as arrays.
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{lua}
+-- Create a table as an array
+local array = {"Hello", "world"}
+array[3] = "from"
+array[4] = "Lua"
+
+-- Concatenate the elements of the table,
+-- separated by a space, and append '!'
+-- ('..' is the string concatenation operator)
+local hello = table.concat(array, " ") .. "!"
+
+-- Print "Hello world from Lua!" to stdout
+print(hello)
+\end{minted}
+\caption{Using tables as arrays}
+\label{lst:lua_tables}
+\end{figure}
+
+\newpage
+\subsection{Functions}
+In Lua, functions are first-class values. In fact, the function definition statement (\lua{function f() ... end}) is syntax sugar for assigning a function expression (\lua{f = function() ... end}).
+
+Functions can return multiple values at once. For example in the standard library, \lua{coroutine.resume()} (see \ref{section-lua-coroutines}) returns a success status, followed by the result values. Returning multiple values is done like this: \lua{return 10, 20}. On assignment, any extra values are ignored, e.g. \lua{result = coroutine.resume(co)} ignores anything after the first return value. Extra values are also ignored if the function call is wrapped in parentheses, or when it is followed by another expression. That means \lua{y} will be \lua{nil} here: \lua{x, y = (coroutine.resume(co))} and here: \lua{x, y = coroutine.resume(co), nil}.
+
+Functions are also closures: they have access to the local variables of an enclosing function An example of this can be seen in listing \ref{lst:lua_vararg}.
+
+Functions can also take a variable number of arguments, using a vararg expression. Adding \lua{...} to the end of a function's signature turns it into a vararg function, and you can then use \lua{...} anywhere directly inside the function to represent the extra arguments passed to the function. \lua{...} is not a first-class citizen, though: it is not possible to use it inside an inner function. To get around that, it is common to put the vararg in a table. A useful function from the standard library is \lua{select(index, ...)}\footnote{\url{https://www.lua.org/manual/5.4/manual.html#pdf-select}}, which is a vararg function itself. It has two uses: when \texttt{index} is the string \lua{"#"}, it returns the number of arguments. When it is a number, it returns all arguments after that index.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}{0.55\textwidth}
+\begin{minted}{lua}
+-- Cherry-pick indices from a table
+function pick(tbl, ...)
+    local new = {}
+    -- Get number of vararg arguments
+    local nArgs = select("#", ...)
+    
+    -- Loop from 1 to nArgs
+    for i = 1, nArgs do
+        -- Get vararg number i
+        local idx = select(i, ...)
+        new[i] = tbl[idx]
+    end
+    return new
+end
+
+-- Pick indices 1, 4 and 2 from 'array'
+local array = {"Hello", "world", "from", "Lua"}
+local picked = pick(array, 1, 4, 2)
+
+-- "Hello Lua world!"
+print(table.concat(picked, " ") .. "!")
+\end{minted}
+% \caption{Using vararg functions}
+\end{subfigure}
+\begin{subfigure}[t]{0.44\textwidth}
+\begin{minted}{lua}
+function makePicker(tbl)
+    return function(...)
+        return pick(tbl, ...)
+    end
+end
+
+local picker = makePicker(array)
+picked = picker(1, 4, 2)
+-- same as before
+\end{minted}
+% \caption{Using closures}
+\end{subfigure}
+\caption{Using vararg functions and closures}
+\label{lst:lua_vararg}
+\end{figure}
+
+\subsection{Metatables}
+A metatable is a normal table assigned to a value as metadata. It can be used to override default behaviour like operators, indexing and calling. Primitive types have a metatable for the entire type, but tables have individual metatables. The metatable set on strings for instance enables shorter OOP-like syntax, \lua{("hello"):upper():reverse()} being shorthand for \lua{string.reverse(string.upper("hello"))}.
+
+In example \ref{lst:lua_metatables_operators}, the metatable containing \lua{__add} and \lua{__tostring} is set as the metatable for the table with \texttt{x} and \texttt{y}. When we do \lua{vec + vec}, Lua looks in the metatable and executes the \lua{__add} function. Similarly when we print the result, the \lua{__tostring} function is executed. In this way, all operators\footnote{\url{https://www.lua.org/manual/5.4/manual.html#2.4}} can be overridden.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}{0.49\textwidth}
+\begin{minted}{lua}
+local mt = {}
+function vector(x, y)
+    return setmetatable(
+        {x = x, y = y}, mt)
+end
+function mt.__add(a, b)
+    return vector(
+        a.x + b.x,
+        a.y + b.y)
+end
+function mt.__tostring(v)
+    return "("..v.x..", "..v.y..")"
+end
+
+local vec = vector(2, 1)
+print(vec + vec) --> (4, 2)
+\end{minted}
+\caption{Overriding operators}
+\label{lst:lua_metatables_operators}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+\begin{minted}{lua}
+local animal = {}
+animal.sound = "*silence*"
+animal.name = "the animal"
+function animal:eat()
+    print(self.name.." eats")
+end
+function animal:makeSound()
+    print(self.sound)
+end
+
+local dog = {}
+setmetatable(dog, {__index = animal})
+dog.sound = "Woof!"
+function dog:bark()
+    self:makeSound()
+end
+
+local myDog = {name = "Doggo"}
+setmetatable(myDog, {__index = dog})
+myDog:eat()  --> Doggo eats
+myDog:bark() --> Woof!
+\end{minted}
+\caption{Creating prototype chains}
+\label{lst:lua_metatables_prototypes}
+\end{subfigure}
+\begin{subfigure}{0.9\textwidth}
+\begin{minted}{lua}
+local fact = { [0] = 1 }
+setmetatable(fact, {
+    __call = function(t, n)
+        -- Calculate and store if it does not exist yet
+        if not t[n] then t[n] = n*fact(n-1) end
+        return t[n]
+    end
+})
+
+fact(10) --> 3628800
+\end{minted}
+\caption{Using the \lua{__call} metamethod for memoization\footnotemark}
+\label{lst:lua_metatables_fact}
+\end{subfigure}
+\caption{Using metatables}
+\label{lst:lua_metatables}
+\end{figure}\footnotetext{example adapted from \url{https://www.quora.com/What-is-the-__call-metamethod-in-Lua-and-what-are-some-of-its-uses-and-basic-examples/answer/Pierre-Chapuis}}
+
+Not only operators can be overridden like this. It is also possible to customise what happens when a field is not found, for example doing \lua{tbl.foo} when \lua{tbl} does not contain the key \lua{foo}. When Lua cannot find a key, if the metatable's \lua{__index} is a table, it will look there. This can be used to create a prototype inheritance chain. To facilitate this, Lua has syntax sugar: \lua{myDog:bark()} (notice the colon) is sugar for \lua{myDog.bark(myDog)}, and \lua{function dog:bark()} is sugar for \lua{function dog.bark(self)}. These concepts are demonstrated in listing \ref{lst:lua_metatables_prototypes}, and this is also how the shorthand string operations mentioned before work.
+
+Another metamethod that can be used is the \lua{__call} metamethod, which is called when trying to call a table. This can be used for instance to create a memoised factorial function, as shown in listing \ref{lst:lua_metatables_fact}.
+
+\subsection{Coroutines}\label{section-lua-coroutines}
+Lua provides asymmetric stackful coroutines. A coroutine is a first-class value of type \texttt{thread}. A coroutine represents a thread of execution in the Lua interpreter, and can be used for concurrency, but not parallelism. Functions for creating a coroutine from a function, resuming a coroutine and yielding from a coroutine are \lua{coroutine.create()}, \lua{coroutine.resume()} and \lua{coroutine.yield()} respectively.
+
+Coroutines in Lua are asymmetric: a coroutine cannot specify where to transfer control to, it always yields back to its caller \cite{moura2009revisiting}.
+
+Lua's coroutines are stackful, which means that a yield can happen anywhere in the call stack. Something like \ref{lst:lua_coroutines} is not possible with for example Python's generators.
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{lua}
+function yieldIncr(value)
+    coroutine.yield(value + 1)
+end
+
+function coroFunction()
+    yieldIncr(41)
+end
+
+-- Create a coroutine
+local co = coroutine.create(coroFunction)
+local success, result = coroutine.resume(co)
+print(result) --> 42
+\end{minted}
+\caption{Yielding from deeper into the call stack}
+\label{lst:lua_coroutines}
+\end{figure}
+
+% http://www.mcours.net/cours/pdf/hasclic2/hassclic117.pdf
+% http://www.lua.org/doc/jucs04.pdf

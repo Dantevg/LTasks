@@ -1,0 +1,56 @@
+\section{Combinators}\label{section-combinators}
+
+\subsection{Combinators and operators}
+Combinators are common in functional languages like Clean, where it is possible to define custom operators for them. For instance, the \clean{step} function has an infix operator version, \clean{>>*}.
+
+Lua does not allow defining custom operators, but you can change the behaviour of the pre-existing operators. While custom infix operators make combinators easier to use, they are not a requirement. We can define them as normal Lua functions, like the plain \clean{step} function in iTasks.
+
+To make them easier to use, we can define a \lua{task} prototype that has all the combinators, and let all tasks inherit from this prototype using the \lua{__index} metatable entry.
+
+\subsection{Step}
+The step combinator executes one task and chooses another task to execute with the result of the first task. The result the step combinator is a task that has the value of the selected follow-up task. It is called \textit{step} because when it can execute one of the follow-up tasks, it steps to that task and does not go back anymore.
+
+In iTasks, the step combinator expects a list of \textit{task continuations}. Such a continuation defines a task that should be executed when some event happens. Such an event can be when a task has a stable value or when a task has a value that matches some predicate (\clean{OnValue}). It can also be when the user presses some button like `yes', `no', `ok' or `cancel' (\clean{OnAction}). For the proof of concept, we will only consider \clean{OnValue}. Listing \ref{lst:clean_onvalue_step} shows an example of using multiple \clean{OnValue} continuations. The step combinator only steps to a continuation if its predicate holds. If we simplify its signature from iTasks, we can get listing \ref{lst:clean_step}.
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{clean}
+step :: (Task a) [(TaskValue a) -> ? Task b] -> Task b
+\end{minted}
+\caption{The simplified \clean{step} combinator's signature.}
+\label{lst:clean_step}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{clean}
+getInput >>* [
+	OnValue (ifValue isPalindrome (showInput "you entered a palindrome: ")),
+	OnValue (ifValue isGreeting (showInput "you entered a greeting: "))]
+\end{minted}
+\caption{Using \clean{OnValue} with the step combinator. \clean{getInput} and \clean{showInput} are convenience wrappers around the iTasks functions \clean{enterInformation} and \clean{viewInformation}.}
+\label{lst:clean_onvalue_step}
+\end{figure}
+
+\subsubsection{Type matching}\label{section-combinators-type-matching}
+The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-task-types}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-editors-lua}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here.
+
+\paragraph{Best match or first match} When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. \dots
+
+\paragraph{Matching lists: length} If the continuation specifies a list length and if the actual list is longer than this length, does it still match? \dots
+
+\paragraph{Matching lists: types and order} A list in Lua can contain values of differing types at once. What happens if the actual list contains the right types but in the wrong order? \dots
+
+\paragraph{Matching tables} When a table has more fields than required, does it match? \dots
+
+\subsection{Parallel}
+If we bring the \clean{parallel} signature from iTasks down to its essence, we get listing \ref{lst:clean_parallel}. It takes a list of tasks, the task it returns has as its value a list of values of the original tasks.
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{clean}
+parallel :: [Task a] -> Task [TaskValue a]
+\end{minted}
+\caption{The simplified \clean{parallel} combinator's signature.}
+\label{lst:clean_parallel}
+\end{figure}
