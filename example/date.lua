@@ -1,5 +1,5 @@
-local task = require "task"
-local editor = require "terminalEditor"
+local task = require "LTask.task"
+local editor = require "LTask.terminalEditor"
 local pretty = require "pretty"
 
 local months = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
@@ -60,7 +60,7 @@ local dateTableNumeric = editDateNumeric(nil, "date as numeric table:")
 local dateTableNamedMonth = editDateNamedMonth(nil, "date as named-month table:")
 
 -- Probleem: dateTable* werkt niet met dateString
-datepicker = (dateString | dateTableNumeric | dateTableNamedMonth) .. {
+local datepicker = (dateString | dateTableNumeric | dateTableNamedMonth) .. {
 	{
 		type = "string",
 		fn = function(dateStr)
@@ -81,3 +81,5 @@ datepicker = (dateString | dateTableNumeric | dateTableNamedMonth) .. {
 		end
 	}
 }
+
+return datepicker

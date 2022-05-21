@@ -1,5 +1,5 @@
-local task = require "task"
-local editor = require "terminalEditor"
+local task = require "LTask.task"
+local editor = require "LTask.terminalEditor"
 
 local makeTea = editor.editBoolean(false, "make tea?")
 	:transform(function(x) return x and "Tea" or nil end)

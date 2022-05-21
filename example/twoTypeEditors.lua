@@ -1,5 +1,5 @@
-local task = require "task"
-local editor = require "terminalEditor"
+local task = require "LTask.task"
+local editor = require "LTask.terminalEditor"
 
 t1 = editor.editBoolean(true)
 t2 = editor.editNumber(32)
