@@ -43,15 +43,15 @@ end
 ---Transform the result of task `t` with function `fn`.
 ---
 ---iTasks equivalent: [`transform`](https://cloogle.org/#transform)  
----`Task a, (a -> b) -> Task b`
+---`Task a, ((a, boolean) -> (b, boolean)) -> Task b`
 ---@param t table `Task a`
----@param fn function `a -> b`
+---@param fn function `(a, boolean) -> (b, boolean)`
 ---@return table `Task b`
 function task.transform(t, fn)
 	return task.new(function(self)
 		while not self.stable do
 			t:resume()
-			self.value, self.stable = fn(t.value)
+			self.value, self.stable = fn(t.value, t.stable)
 			if self.stable == nil then self.stable = t.stable end
 			coroutine.yield()
 		end
@@ -59,6 +59,7 @@ function task.transform(t, fn)
 end
 
 local function matchTypes(value, stable, conts)
+	-- volgorde is belangrijk, niet veranderen!
 	for _, cont in ipairs(conts) do
 		-- nil type signifies any type
 		if type(value) == cont.type or cont.type == nil then
@@ -129,9 +130,9 @@ end
 ---of results of `tasks`.
 ---
 ---iTasks equivalent: [`parallel`](https://cloogle.org/#parallel)  
----`[Task a] -> Task [a]`
+---`[Task a] -> Task [{value: a, stable: boolean}]`
 ---@param tasks table `[Task a]`
----@return table `Task [a]`
+---@return table `Task [{value: a, stable: boolean}]`
 function task.parallel(tasks)
 	return task.new(function(self)
 		self.value = {}
@@ -153,6 +154,7 @@ end
 -- iTasks equivalent: [`anyTask`](https://cloogle.org/#anyTask)  
 -- `[Task a] -> Task a`
 function task.anyTask(tasks)
+	-- TODO: prioriteit aan stable values
 	return task.transform(
 		task.parallel(tasks),
 		function(values)
