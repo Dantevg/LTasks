@@ -2,6 +2,22 @@ local task = require "LTask.task"
 
 local editor = {}
 
+-- Show `value` to the user with a prompt before.
+-- Is never stable.
+--
+-- iTasks equivalent: [`viewInformation`](https://cloogle.org/#parallel)  
+-- `a, String? -> Task String`
+function editor.viewInformation(value, prompt)
+	return task.new(function(self)
+		while true do
+			self.value = value
+			if prompt then io.write(prompt.." ") end
+			print(value)
+			coroutine.yield()
+		end
+	end)
+end
+
 local function editGeneric(value, converter, prompt)
 	return task.new(function(self)
 		self.value = converter(value)

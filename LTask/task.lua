@@ -24,22 +24,6 @@ function task.constant(value)
 	end)
 end
 
--- Show `value` to the user with a prompt before.
--- Is never stable.
---
--- iTasks equivalent: [`viewInformation`](https://cloogle.org/#parallel)  
--- `a, String? -> Task String`
-function task.viewInformation(value, prompt)
-	return task.new(function(self)
-		while true do
-			self.value = value
-			if prompt then io.write(prompt.." ") end
-			print(value)
-			coroutine.yield()
-		end
-	end)
-end
-
 ---Transform the result of task `t` with function `fn`.
 ---
 ---iTasks equivalent: [`transform`](https://cloogle.org/#transform)  

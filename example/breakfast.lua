@@ -8,7 +8,7 @@ local makeCoffee = editor.editBoolean(false, "make coffee?")
 local makeSandwich = editor.editBoolean(false, "make sandwich?")
 	:transform(function(x) return x and "A Sandwich" or nil end)
 local eatBreakfast = function(drink, food)
-	return task.viewInformation("I'm eating "..food.." and drinking "..drink)
+	return editor.viewInformation("I'm eating "..food.." and drinking "..drink)
 end
 
 -- local breakfast = makeTea:parallelOr(makeCoffee)
