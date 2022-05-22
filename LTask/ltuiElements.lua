@@ -2,12 +2,26 @@ local ltui = require "ltui"
 
 local ltuiElements = {}
 
-local function genericDialog(dialog, prompt, parent)
+local function genericDialog(dialog, text, parent)
 	dialog:background_set(parent:frame():background())
 	dialog:frame():background_set("cyan")
-	if prompt then dialog:text():text_set(prompt) end
+	if dialog:title() then dialog:title():textattr_set("black") end
+	if text then dialog:text():text_set(text) end
 	dialog:extra_set("config", {})
 	dialog:show(false)
+	return dialog
+end
+
+---Show a string to the user.
+---@param value string the value to display
+---@param prompt string?
+---@param parent table the parent UI element
+---@return table element the resulting editor UI element
+function ltuiElements.stringView(value, prompt, parent)
+	local dialog = genericDialog(ltui.textdialog:new("dialog.text",
+		ltui.rect {0, 0, math.min(60, parent:width() - 8), math.min(8, parent:height())}),
+		(prompt and tostring(prompt).." " or "")..tostring(value), parent)
+	dialog:button_add("exit", "< Exit >", function() dialog:show(false) end)
 	return dialog
 end
 
@@ -18,14 +32,14 @@ local function inputEditor(value, converter, prompt, parent, callback)
 		prompt, parent
 	)
 	dialog:textedit():text_set(tostring(converter(value)))
-	dialog:button_add("no", "< No >", function() dialog:show(false) end)
-	dialog:button_add("yes", "< Yes >", function()
+	dialog:button_add("set", "< Set >", function()
 		local converted = converter(dialog:textedit():text())
 		dialog:extra("config").value = converted
 		dialog:textedit():text_set(converted ~= nil and tostring(converted) or "")
 		callback(converted, dialog)
 		dialog:show(false)
 	end)
+	dialog:button_add("cancel", "< Cancel >", function() dialog:show(false) end)
 	return dialog
 end
 
