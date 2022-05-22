@@ -1,14 +1,15 @@
 local ltui = require "ltui"
+local app = require "LTask.ltuiApp"
 
 local ltuiElements = {}
 
-local function genericDialog(dialog, text, parent)
-	dialog:background_set(parent:frame():background())
+local function genericDialog(dialog, text, title, parent)
+	dialog:background_set(app.main:maindialog():frame():background())
 	dialog:frame():background_set("cyan")
-	if dialog:title() then dialog:title():textattr_set("black") end
 	if text then dialog:text():text_set(text) end
+	if title then dialog:title():text_set(title) end
 	dialog:extra_set("config", {})
-	dialog:show(false)
+	-- dialog:show(false)
 	return dialog
 end
 
@@ -18,28 +19,19 @@ end
 ---@param parent table the parent UI element
 ---@return table element the resulting editor UI element
 function ltuiElements.stringView(value, prompt, parent)
-	local dialog = genericDialog(ltui.textdialog:new("dialog.text",
-		ltui.rect {0, 0, math.min(60, parent:width() - 8), math.min(8, parent:height())}),
-		(prompt and tostring(prompt).." " or "")..tostring(value), parent)
-	dialog:button_add("exit", "< Exit >", function() dialog:show(false) end)
-	return dialog
+	return genericDialog(app.main:resultdialog(),
+		(prompt and tostring(prompt).." " or "")..tostring(value), nil, parent)
 end
 
 local function inputEditor(value, converter, prompt, parent, callback)
-	local dialog = genericDialog(
-		ltui.inputdialog:new("dialog.input",
-			ltui.rect {0, 0, math.min(80, parent:width() - 8), math.min(8, parent:height())}),
-		prompt, parent
-	)
+	local dialog = genericDialog(app.main:inputdialog(), prompt, nil, parent)
 	dialog:textedit():text_set(tostring(converter(value)))
-	dialog:button_add("set", "< Set >", function()
-		local converted = converter(dialog:textedit():text())
-		dialog:extra("config").value = converted
-		dialog:textedit():text_set(converted ~= nil and tostring(converted) or "")
+	dialog:panel():select(dialog:textedit())
+	dialog:extra("config").callback = function(val, config)
+		local converted = converter(val)
+		config.value = converted
 		callback(converted, dialog)
-		dialog:show(false)
-	end)
-	dialog:button_add("cancel", "< Cancel >", function() dialog:show(false) end)
+	end
 	return dialog
 end
 
@@ -72,23 +64,16 @@ function ltuiElements.numberEditor(value, prompt, parent, callback)
 end
 
 local function choiceEditor(value, choices, converter, prompt, parent, callback)
-	local dialog = genericDialog(
-		ltui.choicedialog:new("dialog.input",
-			ltui.rect {0, 0, math.min(80, parent:width() - 8), math.min(20, parent:height())}),
-		prompt, parent
-	)
+	local dialog = genericDialog(app.main:choicedialog(), prompt, nil, parent)
+	dialog:extra("config").callback = function(val, config)
+		local converted = converter(val)
+		config.value = converted
+		callback(converted, dialog)
+	end
 	dialog:choicebox():load(choices, value)
 	dialog:choicebox():action_set(ltui.action.ac_on_selected, function (_, index, choice)
 		local converted = converter(choice, index)
 		dialog:extra("config").value = converted
-	end)
-	dialog:button("select"):action_set(ltui.action.ac_on_enter, function()
-		dialog:choicebox():on_event(ltui.event.command {"cm_enter"})
-		callback(dialog:extra("config").value, dialog)
-		dialog:show(false)
-	end)
-	dialog:button("cancel"):action_set(ltui.action.ac_on_enter, function()
-		dialog:show(false)
 	end)
 	return dialog
 end
