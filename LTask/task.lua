@@ -65,10 +65,10 @@ end
 ---@param conts table `[ {type: string, fn: (a -> Task b)} ]`
 ---@return table `Task b`
 function task.step(t, conts)
-	return task.new(function(self)
+	return task.new(function(self, ...)
 		local next
 		while not next and not t.stable do
-			t:resume()
+			t:resume(...)
 			next = matchTypes(t.value, t.stable, conts)
 			if not next then coroutine.yield() end
 		end
@@ -78,7 +78,7 @@ function task.step(t, conts)
 		-- Step happens here
 		
 		while not self.stable do
-			next:resume()
+			next:resume(...)
 			self.value, self.stable = next.value, next.stable
 			coroutine.yield()
 		end
@@ -202,11 +202,11 @@ end
 
 
 
-function task:resume()
+function task:resume(...)
 	if self.stable then return self.value end
 	if coroutine.status(self.co) == "dead" then return end
 	
-	local success, err = coroutine.resume(self.co, self)
+	local success, err = coroutine.resume(self.co, self, ...)
 	
 	if not success then error(err) end
 	return self.value, self.stable
