@@ -23,15 +23,32 @@ function app:init()
 	self:background_set("blue")
 	
 	self:insert(self:maindialog())
-	-- self:select(self:maindialog())
 	
-	self.task = editor.editString("default", "Enter Information:") .. {{
-		type = "string",
+	self.task = editor.editNumber(41, "Enter Information:") .. {{
+		type = "number",
+		action = "continue",
 		fn = function(value)
-			if #value > 10 then return editor.viewInformation(value, "The information:") end
+			if value > 41 then return editor.viewInformation(value, "The information:") end
 		end
 	}}
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
+	
+	self:maindialog():box():panel():insert(ltui.button:new(
+		"button.1",
+		ltui.rect:new(0, 0, self:maindialog():width(), 1),
+		"Task: "..self.task.__name,
+		function()
+			self.task:show()
+		end
+	))
+	
+	self:maindialog():button_add("showtask", "< Show Task >", function()
+		self.task:show()
+	end)
+	self:maindialog():button_add("continue", "< Continue >", function()
+		self.task:resume({action = "continue"})
+	end)
+	self:maindialog():button_add("quit", "< Quit >", "cm_quit")
 end
 
 -- on resize
