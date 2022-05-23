@@ -3,7 +3,7 @@ local app = require "LTask.ltuiApp"
 
 local ltuiElements = {}
 
-local function genericDialog(dialog, text, title, parent)
+local function genericDialog(dialog, text, title)
 	dialog:background_set(app.main:maindialog():frame():background())
 	dialog:frame():background_set("cyan")
 	if text then dialog:text():text_set(text) end
@@ -16,15 +16,14 @@ end
 ---Show a string to the user.
 ---@param value string the value to display
 ---@param prompt string?
----@param parent table the parent UI element
 ---@return table element the resulting editor UI element
-function ltuiElements.stringView(value, prompt, parent)
+function ltuiElements.stringView(value, prompt)
 	return genericDialog(app.main:resultdialog(),
-		(prompt and tostring(prompt).." " or "")..tostring(value), nil, parent)
+		(prompt and tostring(prompt).." " or "")..tostring(value), nil)
 end
 
-local function inputEditor(value, converter, prompt, parent, callback)
-	local dialog = genericDialog(app.main:inputdialog(), prompt, nil, parent)
+local function inputEditor(value, converter, prompt, callback)
+	local dialog = genericDialog(app.main:inputdialog(), prompt, nil)
 	dialog:textedit():text_set(tostring(converter(value)))
 	dialog:panel():select(dialog:textedit())
 	dialog:extra("config").callback = function(val, config)
@@ -38,12 +37,10 @@ end
 ---An editor for strings.
 ---@param value string the initial value
 ---@param prompt string?
----@param parent table the parent UI element
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.stringEditor(value, prompt, parent, callback)
-	local dialog = inputEditor(value, tostring, prompt or "please input text:",
-		parent, callback)
+function ltuiElements.stringEditor(value, prompt, callback)
+	local dialog = inputEditor(value, tostring, prompt or "please input text:", callback)
 	dialog:extra("config").value = value
 	dialog:extra("config").type = "string"
 	return dialog
@@ -52,19 +49,17 @@ end
 ---An editor for numbers.
 ---@param value number the initial value
 ---@param prompt string?
----@param parent table the parent UI element
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.numberEditor(value, prompt, parent, callback)
-	local dialog = inputEditor(value, tonumber, prompt or "please input number:",
-		parent, callback)
+function ltuiElements.numberEditor(value, prompt, callback)
+	local dialog = inputEditor(value, tonumber, prompt or "please input number:", callback)
 	dialog:extra("config").value = value
 	dialog:extra("config").type = "number"
 	return dialog
 end
 
-local function choiceEditor(value, choices, converter, prompt, parent, callback)
-	local dialog = genericDialog(app.main:choicedialog(), prompt, nil, parent)
+local function choiceEditor(value, choices, converter, prompt, callback)
+	local dialog = genericDialog(app.main:choicedialog(), prompt, nil)
 	dialog:extra("config").callback = function(val, config)
 		local converted = converter(val)
 		config.value = converted
@@ -83,10 +78,9 @@ end
 ---@param choices table the list of possible choices
 ---@param converter function|table? the function to use for converting the values
 ---@param prompt table?
----@param parent table the parent UI element
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.choiceEditor(value, choices, converter, prompt, parent, callback)
+function ltuiElements.choiceEditor(value, choices, converter, prompt, callback)
 	if not converter then
 		converter = function(v) return v end
 	elseif type(converter) == "table" then
@@ -99,8 +93,7 @@ function ltuiElements.choiceEditor(value, choices, converter, prompt, parent, ca
 	
 	local dialog = choiceEditor(optionsSet[value], choices,
 		function(v, i) if optionsSet[v] then return converter(v, i) end end,
-		prompt or ("choose from "..table.concat(choices, ", ")..":"),
-		parent, callback)
+		prompt or ("choose from "..table.concat(choices, ", ")..":"), callback)
 	dialog:extra("config").value = value
 	dialog:extra("config").type = "choice"
 	dialog:extra("config").values = choices
