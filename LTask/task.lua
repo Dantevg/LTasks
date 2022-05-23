@@ -4,10 +4,11 @@
 local task = {}
 task.__index = task
 
-function task.new(fn)
+function task.new(fn, name)
 	local self = {}
 	self.stable = false
 	self.value = nil
+	self.__name = name or ""
 	self.co = coroutine.create(fn)
 	return setmetatable(self, task)
 end
@@ -42,11 +43,12 @@ function task.transform(t, fn)
 	end)
 end
 
-local function matchTypes(value, stable, conts)
+local function matchTypes(value, stable, action, conts)
 	-- volgorde is belangrijk, niet veranderen!
 	for _, cont in ipairs(conts) do
 		-- nil type signifies any type
-		if type(value) == cont.type or cont.type == nil then
+		if (type(value) == cont.type or cont.type == nil)
+				and (action == cont.action or cont.action == nil) then
 			local next = cont.fn(value, stable)
 			if next ~= nil then return next end
 		end
@@ -65,12 +67,13 @@ end
 ---@param conts table `[ {type: string, fn: (a -> Task b)} ]`
 ---@return table `Task b`
 function task.step(t, conts)
-	return task.new(function(self, ...)
+	return task.new(function(self, options)
 		local next
 		while not next and not t.stable do
-			t:resume(...)
-			next = matchTypes(t.value, t.stable, conts)
-			if not next then coroutine.yield() end
+			t:resume(options)
+			self.__name = "step (left, "..t.__name..")"
+			next = matchTypes(t.value, t.stable, options.action, conts)
+			if not next then self, options = coroutine.yield() end
 		end
 		
 		if not next then error("no matching continuation for stable task") end
@@ -78,11 +81,12 @@ function task.step(t, conts)
 		-- Step happens here
 		
 		while not self.stable do
-			next:resume(...)
+			next:resume(options)
+			self.__name = "step (right, "..next.__name..")"
 			self.value, self.stable = next.value, next.stable
-			coroutine.yield()
+			self, options = coroutine.yield()
 		end
-	end)
+	end, "step")
 end
 
 ---Sequential combinator with a single continuation. Continues when task `t`
@@ -118,19 +122,19 @@ end
 ---@param tasks table `[Task a]`
 ---@return table `Task [{value: a, stable: boolean}]`
 function task.parallel(tasks)
-	return task.new(function(self)
+	return task.new(function(self, options)
 		self.value = {}
 		while not self.stable do
 			for i, t in ipairs(tasks) do
 				if not t.stable then
-					t:resume()
+					t:resume(options)
 					self.value[i] = {value = t.value, stable = t.stable}
 				end
 			end
 			self.stable = allStable(tasks)
-			coroutine.yield()
+			options = coroutine.yield()
 		end
-	end)
+	end, "parallel")
 end
 
 -- Perform tasks in parallel and return the first available value.
@@ -202,14 +206,18 @@ end
 
 
 
-function task:resume(...)
+function task:resume(options)
 	if self.stable then return self.value end
 	if coroutine.status(self.co) == "dead" then return end
 	
-	local success, err = coroutine.resume(self.co, self, ...)
+	local success, err = coroutine.resume(self.co, self, options or {})
 	
 	if not success then error(err) end
 	return self.value, self.stable
+end
+
+function task:show()
+	self:resume({showUI = true})
 end
 
 task.__band = task.parallelAnd

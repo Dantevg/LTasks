@@ -7,7 +7,6 @@ function app:maindialog()
 		local dialog_main = ltui.boxdialog:new("dialog.main",
 			ltui.rect {1, 1, self:width() - 1, self:height() - 1})
 		dialog_main:text():text_set("Main description")
-		dialog_main:button_add("quit", "< Quit >", "cm_quit")
 		self._MAINDIALOG = dialog_main
 	end
 	return self._MAINDIALOG

@@ -13,22 +13,33 @@ local editor = {}
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.viewInformation(value, prompt)
-	return task.new(function(self, parent)
+	local function showUI()
+		app.main:insert(
+			ltuiElements.stringView(value, prompt),
+			{centerx = true, centery = true}
+		)
+	end
+	
+	return task.new(function(self, options)
 		self.value = tostring(value)
-		local dialog = ltuiElements.stringView(value, prompt, app.main:maindialog())
-		-- local button = ltui.button:new("button.2",
-		-- 	ltui.rect:new(0, 2, app.main:maindialog():width(), 1),
-		-- 	"show output",
-		-- 	function() dialog:show(true, {focused = true}) end)
-		-- local selected = app.main:current()
-		app.main:insert(dialog, {centerx = true, centery = true})
-		-- app.main:maindialog():box():panel():insert(button)
-		-- TODO: maybe add new stringView every yield
-		-- to automatically update the button
-		-- app.main:maindialog():box():panel():remove(app.main:maindialog():box():panel():prev(button))
-		-- app.main:select(selected)
-		while true do coroutine.yield() end
-	end)
+		showUI()
+		while true do
+			self, options = coroutine.yield()
+			if options.showUI then showUI() end
+		end
+	end, "viewInformation")
+end
+
+local function genericEditor(value, showUI, name)
+	return task.new(function(self, options)
+		self.value = value
+		local dialog = showUI(self)
+		self.value = dialog:extra("config").value
+		while true do
+			self, options = coroutine.yield()
+			if options.showUI then showUI(self) end
+		end
+	end, name)
 end
 
 ---An editor for strings.
@@ -36,24 +47,12 @@ end
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editString(value, prompt)
-	return task.new(function(self, parent)
-		local dialog = ltuiElements.stringEditor(value, prompt, app.main:maindialog(),
+	return genericEditor(value, function(self)
+		local dialog = ltuiElements.stringEditor(self.value, prompt,
 			function(val) self.value = val end)
-		-- local button = ltui.button:new("button.3",
-		-- 	ltui.rect:new(0, 1, app.main:maindialog():width(), 1),
-		-- 	"show input",
-		-- 	function() dialog:show(true, {focused = true}) end)
-		-- local selected = parent:current()
 		app.main:insert(dialog, {centerx = true, centery = true})
-		-- app.main:maindialog():box():panel():insert(button)
-		-- parent:select(selected)
-		
-		-- self.value = tostring(value)
-		-- self.ui = ltuiElements.stringEditor(value, prompt, self.ui,
-		-- 	function(val) self.value = val end)
-		self.value = dialog:extra("config").value
-		while true do coroutine.yield() end
-	end)
+		return dialog
+	end, "editString")
 end
 
 ---An editor for numbers.
@@ -61,14 +60,12 @@ end
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editNumber(value, prompt)
-	return task.new(function(self)
-		-- self.value = tonumber(value)
-		local dialog = ltuiElements.numberEditor(value, prompt, app.main:maindialog(),
+	return genericEditor(value, function(self)
+		local dialog = ltuiElements.numberEditor(self.value, prompt,
 			function(val) self.value = val end)
 		app.main:insert(dialog, {centerx = true, centery = true})
-		self.value = dialog:extra("config").value
-		while true do coroutine.yield() end
-	end)
+		return dialog
+	end, "editNumber")
 end
 
 ---An editor for a pre-determined set of inputs.
@@ -78,15 +75,12 @@ end
 ---@param prompt table?
 ---@return table element the resulting editor UI element
 function editor.editOptions(value, choices, converter, prompt)
-	return task.new(function(self)
-		self.value = value
-		local dialog = ltuiElements.choiceEditor(value, choices, converter,
-			prompt, app.main:maindialog(),
+	return genericEditor(value, function(self)
+		local dialog = ltuiElements.choiceEditor(self.value, choices, converter, prompt,
 			function(val) self.value = val end)
 		app.main:insert(dialog, {centerx = true, centery = true})
-		self.value = dialog:extra("config").value
-		while true do coroutine.yield() end
-	end)
+		return dialog
+	end, "editOptions")
 end
 
 return editor
