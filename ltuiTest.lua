@@ -17,38 +17,63 @@ local app = require "LTask.ltuiApp"
 	- parallel has two button items (or as many as there are parallel tasks)
 ]]
 
+function app:dialog_root()
+	self:maindialog():box():panel():clear()
+	self:maindialog():buttons():clear()
+	self:maindialog():text():text_set("Root dialog")
+	
+	self:maindialog():box():panel():insert(ltui.button:new(
+		"button.task.root",
+		self:nextbounds(),
+		"Root task: "..self.task.__name,
+		function() self.task:show() end
+	))
+	
+	self:maindialog():button_add("quit", "< Quit >", "cm_quit")
+	-- self:maindialog():button_add("showtask", "< Show Task >", function()
+	-- 	self.task:show()
+	-- end)
+end
+
 function app:init()
 	app.main = self
 	ltui.application.init(self, "demo")
 	self:background_set("blue")
-	
 	self:insert(self:maindialog())
 	
-	self.task = editor.editNumber(41, "Enter Information:") .. {{
-		type = "number",
-		action = "continue",
-		fn = function(value)
-			if value > 41 then return editor.viewInformation(value, "The information:") end
-		end
-	}}
+	-- self.task = editor.editNumber(41, "Enter Information:") .. {{
+	-- 	type = "number",
+	-- 	action = "continue",
+	-- 	fn = function(value)
+	-- 		if value > 41 then return editor.viewInformation(value, "The information:") end
+	-- 	end
+	-- }}
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
 	
-	self:maindialog():box():panel():insert(ltui.button:new(
-		"button.1",
-		ltui.rect:new(0, 0, self:maindialog():width(), 1),
-		"Task: "..self.task.__name,
-		function()
-			self.task:show()
-		end
-	))
+	local colourEditor = editor.editOptions("green", {"red", "green", "blue"})
+	local numberEditor = editor.editNumber(41, "edit number:")
+	-- local booleanEditor = editor.editBoolean(true, "edit boolean:")
+
+	self.task = (colourEditor | numberEditor) .. {
+		{
+			type = "string",
+			action = "continue",
+			fn = function(value) return editor.viewInformation(value, "colour output:") end
+		},
+		{
+			type = "number",
+			action = "continue",
+			fn = function(value) return editor.viewInformation(value, "number output:") end
+		},
+		{
+			type = "boolean",
+			action = "continue",
+			fn = function(value) return editor.viewInformation(value, "boolean output:") end
+		},
+	}
 	
-	self:maindialog():button_add("showtask", "< Show Task >", function()
-		self.task:show()
-	end)
-	self:maindialog():button_add("continue", "< Continue >", function()
-		self.task:resume({action = "continue"})
-	end)
-	self:maindialog():button_add("quit", "< Quit >", "cm_quit")
+	self:dialog_root()
+	-- self.task:show()
 end
 
 -- on resize
@@ -59,7 +84,11 @@ end
 
 -- Called every loop iteration
 function app:on_refresh()
-	if self.task then self.task:resume() end
+	if self.task then
+		self.task:resume()
+		-- Do not do :text_set() because it will mess up the focus or something
+		-- self:maindialog():box():panel():view("button.task.root")._TEXT = "Root task: "..self.task.__name
+	end
 	
 	ltui.application.on_refresh(self)
 end

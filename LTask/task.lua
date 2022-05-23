@@ -1,5 +1,7 @@
----@diagnostic disable: trailing-space
---luacheck: ignore 611
+local ltui = require "ltui"
+local app = require "LTask.ltuiApp"
+local log = require "ltui.base.log"
+local pretty = require "pretty"
 
 local task = {}
 task.__index = task
@@ -33,14 +35,15 @@ end
 ---@param fn function `(a, boolean) -> (b, boolean)`
 ---@return table `Task b`
 function task.transform(t, fn)
-	return task.new(function(self)
+	return task.new(function(self, options)
 		while not self.stable do
-			t:resume()
+			t:resume(options)
+			self.__name = "transform ("..t.__name..")"
 			self.value, self.stable = fn(t.value, t.stable)
 			if self.stable == nil then self.stable = t.stable end
-			coroutine.yield()
+			self, options = coroutine.yield()
 		end
-	end)
+	end, "transform")
 end
 
 local function matchTypes(value, stable, action, conts)
@@ -67,9 +70,30 @@ end
 ---@param conts table `[ {type: string, fn: (a -> Task b)} ]`
 ---@return table `Task b`
 function task.step(t, conts)
+	local current = t
+	local function showUI(self)
+		local dialog = app.main:maindialog()
+		dialog:box():panel():clear()
+		dialog:buttons():clear()
+		dialog:text():text_set("Task: "..self.__name)
+		dialog:button_add("quit", "< Quit >", "cm_quit")
+		dialog:button_add("back", "< Back >", function()
+			-- TODO: return to parent task instead of to root
+			app.main:dialog_root()
+		end)
+		dialog:button_add("continue", "< Continue >", function()
+			self:resume({action = "continue"})
+		end)
+		dialog:button_add("showtask", "< Show Task >", function()
+			current:show()
+		end)
+	end
+	
 	return task.new(function(self, options)
 		local next
 		while not next and not t.stable do
+			if options.showUI then showUI(self) end
+			options.showUI = false
 			t:resume(options)
 			self.__name = "step (left, "..t.__name..")"
 			next = matchTypes(t.value, t.stable, options.action, conts)
@@ -79,8 +103,11 @@ function task.step(t, conts)
 		if not next then error("no matching continuation for stable task") end
 		
 		-- Step happens here
+		current = next
 		
 		while not self.stable do
+			if options.showUI then showUI(self) end
+			options.showUI = false
 			next:resume(options)
 			self.__name = "step (right, "..next.__name..")"
 			self.value, self.stable = next.value, next.stable
@@ -122,17 +149,50 @@ end
 ---@param tasks table `[Task a]`
 ---@return table `Task [{value: a, stable: boolean}]`
 function task.parallel(tasks)
+	local function showUI(self)
+		local dialog = app.main:maindialog()
+		dialog:box():panel():clear()
+		dialog:buttons():clear()
+		dialog:text():text_set("Task: "..self.__name)
+		dialog:button_add("quit", "< Quit >", "cm_quit")
+		dialog:button_add("back", "< Back >", function()
+			-- TODO: return to parent task instead of to root
+			app.main:dialog_root()
+		end)
+		dialog:button_add("continue", "< Continue >", function()
+			self:resume({action = "continue"})
+		end)
+		dialog:button_add("showtask", "< Show Task >", function()
+			log:print(pretty(dialog:box():panel():current()))
+			self:show()
+		end)
+		
+		for i, t in ipairs(tasks) do
+			dialog:box():panel():insert(ltui.button:new(
+				"button.task."..i,
+				app.main:nextbounds(),
+				"Parallel task: "..t.__name,
+				function() t:show() end
+			))
+		end
+	end
+	
 	return task.new(function(self, options)
 		self.value = {}
 		while not self.stable do
+			if options.showUI then showUI(self) end
+			options.showUI = false
+			local taskNames = {}
 			for i, t in ipairs(tasks) do
+				table.insert(taskNames, t.__name)
 				if not t.stable then
 					t:resume(options)
 					self.value[i] = {value = t.value, stable = t.stable}
 				end
 			end
+			self.__name = "parallel ("..table.concat(taskNames, ", ")..")"
 			self.stable = allStable(tasks)
-			options = coroutine.yield()
+			self, options = coroutine.yield()
 		end
 	end, "parallel")
 end

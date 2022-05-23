@@ -6,10 +6,70 @@ function app:maindialog()
 	if not self._MAINDIALOG then
 		local dialog_main = ltui.boxdialog:new("dialog.main",
 			ltui.rect {1, 1, self:width() - 1, self:height() - 1})
-		dialog_main:text():text_set("Main description")
+		-- function dialog_main:on_event(e)
+		-- 	local back = false
+		-- 	if e.type == ltui.event.ev_keyboard then
+		-- 		if e.key_name == "Down" then
+		-- 			if self:current() == self:last() then
+		-- 				self:scroll(self:height())
+		-- 			else
+		-- 				self:select_next()
+		-- 			end
+		-- 			self:_notify_scrolled()
+		-- 			return true
+		-- 		elseif e.key_name == "Up" then
+		-- 			if self:current() == self:first() then
+		-- 				self:scroll(-self:height())
+		-- 			else
+		-- 				self:select_prev()
+		-- 			end
+		-- 			self:_notify_scrolled()
+		-- 			return true
+		-- 		elseif e.key_name == "PageDown" or e.key_name == "PageUp" then
+		-- 			local direction = e.key_name == "PageDown" and 1 or -1
+		-- 			self:scroll(self:height() * direction)
+		-- 			self:_notify_scrolled()
+		-- 			return true
+		-- 		elseif e.key_name == "Enter" or e.key_name == " " then
+		-- 			self:_do_select()
+		-- 			return true
+		-- 		elseif e.key_name:lower() == "y" then
+		-- 			self:_do_include(true)
+		-- 			return true
+		-- 		elseif e.key_name:lower() == "n" then
+		-- 			self:_do_include(false)
+		-- 			return true
+		-- 		elseif e.key_name == "Esc" then
+		-- 			back = true
+		-- 		end
+		-- 	elseif e.type == ltui.event.ev_command then
+		-- 		if e.command == "cm_enter" then
+		-- 			self:_do_select()
+		-- 			return true
+		-- 		elseif e.command == "cm_back" then
+		-- 			back = true
+		-- 		end
+		-- 	end
+		
+		-- 	-- back?
+		-- 	if back then
+		-- 		-- load the previous menu configs
+		-- 		local configs_prev = self._CONFIGS._PREV
+		-- 		if configs_prev then
+		-- 			self._CONFIGS._PREV = configs_prev._PREV
+		-- 			self:load(configs_prev)
+		-- 			return true
+		-- 		end
+		-- 	end
+		-- end
 		self._MAINDIALOG = dialog_main
 	end
 	return self._MAINDIALOG
+end
+
+function app:nextbounds()
+	local last = self:maindialog():box():panel():last()
+	return last and last:bounds()():move(0, 1) or ltui.rect:new(0, 0, self:maindialog():width(), 1)
 end
 
 -- resultdialog, inputdialog, choicedialog from:

@@ -22,10 +22,9 @@ function editor.viewInformation(value, prompt)
 	
 	return task.new(function(self, options)
 		self.value = tostring(value)
-		showUI()
 		while true do
-			self, options = coroutine.yield()
 			if options.showUI then showUI() end
+			self, options = coroutine.yield()
 		end
 	end, "viewInformation")
 end
@@ -33,11 +32,10 @@ end
 local function genericEditor(value, showUI, name)
 	return task.new(function(self, options)
 		self.value = value
-		local dialog = showUI(self)
-		self.value = dialog:extra("config").value
+		-- self.value = dialog:extra("config").value
 		while true do
-			self, options = coroutine.yield()
 			if options.showUI then showUI(self) end
+			self, options = coroutine.yield()
 		end
 	end, name)
 end
@@ -72,7 +70,7 @@ end
 ---@param value any the initial value
 ---@param choices table the list of possible choices
 ---@param converter function|table? the function to use for converting the values
----@param prompt table?
+---@param prompt string?
 ---@return table element the resulting editor UI element
 function editor.editOptions(value, choices, converter, prompt)
 	return genericEditor(value, function(self)
@@ -81,6 +79,20 @@ function editor.editOptions(value, choices, converter, prompt)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editOptions")
+end
+
+---An editor for a pre-determined set of inputs.
+---@param value boolean the initial value
+---@param prompt string?
+---@return table element the resulting editor UI element
+function editor.editBoolean(value, prompt)
+	return genericEditor(value, function(self)
+		local dialog = ltuiElements.choiceEditor(self.value, {"true", "false"},
+			{true, false}, prompt,
+			function(val) self.value = val end)
+		app.main:insert(dialog, {centerx = true, centery = true})
+		return dialog
+	end, "editBoolean")
 end
 
 return editor
