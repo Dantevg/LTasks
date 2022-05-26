@@ -18,16 +18,11 @@ local app = require "LTask.ltuiApp"
 ]]
 
 function app:dialog_root()
-	self:maindialog():box():panel():clear()
+	self:maindialog():tasklist():clear()
 	self:maindialog():buttons():clear()
 	self:maindialog():text():text_set("Root dialog")
 	
-	self:maindialog():box():panel():insert(ltui.button:new(
-		"button.task.root",
-		self:nextbounds(),
-		"Root task: "..self.task.__name,
-		function() self.task:show() end
-	))
+	self:maindialog():tasklist():task_add(self.task, nil, "Root task: ")
 	
 	self:maindialog():button_add("quit", "< Quit >", "cm_quit")
 	-- self:maindialog():button_add("showtask", "< Show Task >", function()
@@ -41,11 +36,11 @@ function app:init()
 	self:background_set("blue")
 	self:insert(self:maindialog())
 	
-	-- self.task = editor.editNumber(41, "Enter Information:") .. {{
+	-- self.task = editor.editBoolean(true, "Enter Information:") .. {{
 	-- 	type = "number",
 	-- 	action = "continue",
 	-- 	fn = function(value)
-	-- 		if value > 41 then return editor.viewInformation(value, "The information:") end
+	-- 		if value then return editor.viewInformation(value, "The information:") end
 	-- 	end
 	-- }}
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
@@ -87,7 +82,7 @@ function app:on_refresh()
 	if self.task then
 		self.task:resume()
 		-- Do not do :text_set() because it will mess up the focus or something
-		-- self:maindialog():box():panel():view("button.task.root")._TEXT = "Root task: "..self.task.__name
+		-- self:maindialog():tasklist():view("button.task.root")._TEXT = "Root task: "..self.task.__name
 	end
 	
 	ltui.application.on_refresh(self)
