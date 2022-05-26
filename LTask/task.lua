@@ -1,4 +1,5 @@
 local ltui = require "ltui"
+local ltuiElements = require "LTask.ltuiElements"
 local app = require "LTask.ltuiApp"
 local log = require "ltui.base.log"
 local pretty = require "pretty"
@@ -81,12 +82,18 @@ function task.step(t, conts)
 			-- TODO: return to parent task instead of to root
 			app.main:dialog_root()
 		end)
-		dialog:button_add("continue", "< Continue >", function()
-			self:resume({action = "continue"})
-		end)
 		dialog:button_add("showtask", "< Show Task >", function()
 			current:show()
 		end)
+		
+		-- Add buttons for actions
+		local addedActions = {}
+		for _, cont in ipairs(conts) do
+			if cont.action and not addedActions[cont.action] then
+				ltuiElements.addActionButton(dialog, cont.action, self)
+				addedActions[cont.action] = true
+			end
+		end
 	end
 	
 	return task.new(function(self, options)
@@ -158,9 +165,6 @@ function task.parallel(tasks)
 		dialog:button_add("back", "< Back >", function()
 			-- TODO: return to parent task instead of to root
 			app.main:dialog_root()
-		end)
-		dialog:button_add("continue", "< Continue >", function()
-			self:resume({action = "continue"})
 		end)
 		dialog:button_add("showtask", "< Show Task >", function()
 			log:print(pretty(dialog:box():panel():current()))

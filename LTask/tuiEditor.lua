@@ -3,6 +3,9 @@ local ltuiElements = require "LTask.ltuiElements"
 local ltui = require "ltui"
 local app = require "LTask.ltuiApp"
 
+local log = require "ltui.base.log"
+local pretty = require "pretty"
+
 local editor = {}
 
 ---Show `value` to the user with a prompt before.
@@ -74,8 +77,8 @@ end
 ---@return table element the resulting editor UI element
 function editor.editOptions(value, choices, converter, prompt)
 	return genericEditor(value, function(self)
-		local dialog = ltuiElements.choiceEditor(self.value, choices, converter, prompt,
-			function(val) self.value = val end)
+		local dialog = ltuiElements.choiceEditor(self.value ~= nil and tostring(self.value) or "",
+			choices, converter, prompt, function(val) self.value = val end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editOptions")
@@ -86,13 +89,10 @@ end
 ---@param prompt string?
 ---@return table element the resulting editor UI element
 function editor.editBoolean(value, prompt)
-	return genericEditor(value, function(self)
-		local dialog = ltuiElements.choiceEditor(self.value, {"true", "false"},
-			{true, false}, prompt,
-			function(val) self.value = val end)
-		app.main:insert(dialog, {centerx = true, centery = true})
-		return dialog
-	end, "editBoolean")
+	local t = editor.editOptions(value and "true" or "false",
+		{"true", "false"}, {true, false}, prompt)
+	t.__name = "editBoolean"
+	return t
 end
 
 return editor

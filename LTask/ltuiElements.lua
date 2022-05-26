@@ -1,7 +1,20 @@
 local ltui = require "ltui"
 local app = require "LTask.ltuiApp"
 
+local log = require "ltui.base.log"
+local pretty = require "pretty"
+
 local ltuiElements = {}
+
+local function capitalise(str)
+	return str:gsub("^%l", string.upper)
+end
+
+function ltuiElements.addActionButton(dialog, action, self)
+	dialog:button_add(action, "< "..capitalise(action).." >", function()
+		self:resume({action = action})
+	end)
+end
 
 local function genericDialog(dialog, text, title)
 	dialog:background_set(app.main:maindialog():frame():background())
@@ -24,7 +37,7 @@ end
 
 local function inputEditor(value, converter, prompt, callback)
 	local dialog = genericDialog(app.main:inputdialog(), prompt, nil)
-	dialog:textedit():text_set(tostring(converter(value)))
+	dialog:textedit():text_set(converter(value) ~= nil and tostring(converter(value)) or "")
 	dialog:panel():select(dialog:textedit())
 	dialog:extra("config").callback = function(val, config)
 		local converted = converter(val)
@@ -60,15 +73,10 @@ end
 
 local function choiceEditor(value, choices, converter, prompt, callback)
 	local dialog = genericDialog(app.main:choicedialog(), prompt, nil)
-	dialog:extra("config").callback = function(val, config)
-		local converted = converter(val)
-		config.value = converted
-		callback(converted, dialog)
-	end
+	dialog:extra("config").callback = callback
 	dialog:choicebox():load(choices, value)
-	dialog:choicebox():action_set(ltui.action.ac_on_selected, function (_, index, choice)
-		local converted = converter(choice, index)
-		dialog:extra("config").value = converted
+	dialog:choicebox():action_set(ltui.action.ac_on_selected, function(_, index, choice)
+		dialog:extra("config").value = converter(choice, index)
 	end)
 	return dialog
 end
