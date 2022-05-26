@@ -29,7 +29,7 @@ function editor.viewInformation(value, prompt)
 			if options.showUI then showUI() end
 			self, options = coroutine.yield()
 		end
-	end, "viewInformation")
+	end, "viewInformation ("..(prompt and tostring(prompt).." " or "")..tostring(value)..")")
 end
 
 local function genericEditor(value, showUI, name)
@@ -37,6 +37,7 @@ local function genericEditor(value, showUI, name)
 		self.value = value
 		-- self.value = dialog:extra("config").value
 		while true do
+			self.__name = name.." ("..tostring(self.value)..")"
 			if options.showUI then showUI(self) end
 			self, options = coroutine.yield()
 		end

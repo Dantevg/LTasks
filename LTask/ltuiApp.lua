@@ -6,6 +6,8 @@ local pretty = require "pretty"
 
 local app = ltui.application()
 
+app.accent = "cyan"
+
 function app:maindialog()
 	if not self._MAINDIALOG then
 		self._MAINDIALOG = tasklistdialog:new("dialog.main",
@@ -26,7 +28,7 @@ function app:resultdialog()
 		)
 		dialog_result:button_add("close", "< Close >", function () dialog_result:quit() end)
 		dialog_result:background_set(self:maindialog():frame():background())
-		dialog_result:frame():background_set("cyan")
+		dialog_result:frame():background_set(self.accent)
 		dialog_result:option_set("scrollable", true)
 		dialog_result:title():textattr_set("black")
 		self._RESULTDIALOG = dialog_result
@@ -42,7 +44,7 @@ function app:inputdialog()
 			"input dialog"
 		)
 		dialog_input:background_set(self:maindialog():frame():background())
-		dialog_input:frame():background_set("cyan")
+		dialog_input:frame():background_set(self.accent)
 		dialog_input:textedit():option_set("multiline", false)
 		dialog_input:title():textattr_set("black")
 		dialog_input:button_add("ok", "< Ok >", function()
@@ -69,8 +71,8 @@ function app:choicedialog()
 			"input dialog"
 		)
 		dialog_choice:background_set(self:maindialog():frame():background())
-		dialog_choice:frame():background_set("cyan")
-		dialog_choice:box():frame():background_set("cyan")
+		dialog_choice:frame():background_set(self.accent)
+		dialog_choice:box():frame():background_set(self.accent)
 		dialog_choice:title():textattr_set("black")
 		dialog_choice:button("select"):action_set(ltui.action.ac_on_enter, function()
 			dialog_choice:choicebox():on_event(ltui.event.command {"cm_enter"})

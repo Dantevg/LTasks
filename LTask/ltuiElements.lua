@@ -61,8 +61,6 @@ function ltuiElements.parallelDialog(self, tasks)
 end
 
 local function genericDialog(dialog, text, title)
-	dialog:background_set(app.main:maindialog():frame():background())
-	dialog:frame():background_set("cyan")
 	if text then dialog:text():text_set(text) end
 	if title then dialog:title():text_set(title) end
 	dialog:extra_set("config", {})
