@@ -1,74 +1,21 @@
 local ltui = require "ltui"
+local tasklistdialog = require "LTask.ltui.tasklistdialog"
+
+local log = require "ltui.base.log"
+local pretty = require "pretty"
 
 local app = ltui.application()
 
 function app:maindialog()
 	if not self._MAINDIALOG then
-		local dialog_main = ltui.boxdialog:new("dialog.main",
+		self._MAINDIALOG = tasklistdialog:new("dialog.main",
 			ltui.rect {1, 1, self:width() - 1, self:height() - 1})
-		-- function dialog_main:on_event(e)
-		-- 	local back = false
-		-- 	if e.type == ltui.event.ev_keyboard then
-		-- 		if e.key_name == "Down" then
-		-- 			if self:current() == self:last() then
-		-- 				self:scroll(self:height())
-		-- 			else
-		-- 				self:select_next()
-		-- 			end
-		-- 			self:_notify_scrolled()
-		-- 			return true
-		-- 		elseif e.key_name == "Up" then
-		-- 			if self:current() == self:first() then
-		-- 				self:scroll(-self:height())
-		-- 			else
-		-- 				self:select_prev()
-		-- 			end
-		-- 			self:_notify_scrolled()
-		-- 			return true
-		-- 		elseif e.key_name == "PageDown" or e.key_name == "PageUp" then
-		-- 			local direction = e.key_name == "PageDown" and 1 or -1
-		-- 			self:scroll(self:height() * direction)
-		-- 			self:_notify_scrolled()
-		-- 			return true
-		-- 		elseif e.key_name == "Enter" or e.key_name == " " then
-		-- 			self:_do_select()
-		-- 			return true
-		-- 		elseif e.key_name:lower() == "y" then
-		-- 			self:_do_include(true)
-		-- 			return true
-		-- 		elseif e.key_name:lower() == "n" then
-		-- 			self:_do_include(false)
-		-- 			return true
-		-- 		elseif e.key_name == "Esc" then
-		-- 			back = true
-		-- 		end
-		-- 	elseif e.type == ltui.event.ev_command then
-		-- 		if e.command == "cm_enter" then
-		-- 			self:_do_select()
-		-- 			return true
-		-- 		elseif e.command == "cm_back" then
-		-- 			back = true
-		-- 		end
-		-- 	end
-		
-		-- 	-- back?
-		-- 	if back then
-		-- 		-- load the previous menu configs
-		-- 		local configs_prev = self._CONFIGS._PREV
-		-- 		if configs_prev then
-		-- 			self._CONFIGS._PREV = configs_prev._PREV
-		-- 			self:load(configs_prev)
-		-- 			return true
-		-- 		end
-		-- 	end
-		-- end
-		self._MAINDIALOG = dialog_main
 	end
 	return self._MAINDIALOG
 end
 
 function app:nextbounds()
-	local last = self:maindialog():box():panel():last()
+	local last = self:maindialog():tasklist():last()
 	return last and last:bounds()():move(0, 1) or ltui.rect:new(0, 0, self:maindialog():width(), 1)
 end
 
@@ -82,7 +29,7 @@ function app:resultdialog()
 			ltui.rect {0, 0, math.min(80, self:width() - 8), math.min(8, self:height())},
 			"output dialog"
 		)
-		dialog_result:button_add("exit", "< Exit >", function () dialog_result:quit() end)
+		dialog_result:button_add("close", "< Close >", function () dialog_result:quit() end)
 		dialog_result:background_set(self:maindialog():frame():background())
 		dialog_result:frame():background_set("cyan")
 		dialog_result:option_set("scrollable", true)

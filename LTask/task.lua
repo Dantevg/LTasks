@@ -74,7 +74,7 @@ function task.step(t, conts)
 	local current = t
 	local function showUI(self)
 		local dialog = app.main:maindialog()
-		dialog:box():panel():clear()
+		dialog:tasklist():clear()
 		dialog:buttons():clear()
 		dialog:text():text_set("Task: "..self.__name)
 		dialog:button_add("quit", "< Quit >", "cm_quit")
@@ -158,7 +158,7 @@ end
 function task.parallel(tasks)
 	local function showUI(self)
 		local dialog = app.main:maindialog()
-		dialog:box():panel():clear()
+		dialog:tasklist():clear()
 		dialog:buttons():clear()
 		dialog:text():text_set("Task: "..self.__name)
 		dialog:button_add("quit", "< Quit >", "cm_quit")
@@ -167,17 +167,12 @@ function task.parallel(tasks)
 			app.main:dialog_root()
 		end)
 		dialog:button_add("showtask", "< Show Task >", function()
-			log:print(pretty(dialog:box():panel():current()))
+			log:print(pretty(dialog:tasklist():current()))
 			self:show()
 		end)
 		
 		for i, t in ipairs(tasks) do
-			dialog:box():panel():insert(ltui.button:new(
-				"button.task."..i,
-				app.main:nextbounds(),
-				"Parallel task: "..t.__name,
-				function() t:show() end
-			))
+			dialog:tasklist():task_add(t, self, "Parallel task: ")
 		end
 	end
 	
