@@ -16,6 +16,50 @@ function ltuiElements.addActionButton(dialog, action, self)
 	end)
 end
 
+function ltuiElements.stepDialog(self, conts, current)
+	local dialog = app.main:maindialog()
+	dialog:tasklist():clear()
+	dialog:buttons():clear()
+	dialog:text():text_set("Task: "..self.__name)
+	dialog:button_add("quit", "< Quit >", "cm_quit")
+	dialog:button_add("back", "< Back >", function()
+		-- TODO: return to parent task instead of to root
+		app.main:dialog_root()
+	end)
+	dialog:button_add("showtask", "< Show Task >", function()
+		current:show()
+	end)
+	
+	-- Add buttons for actions
+	local addedActions = {}
+	for _, cont in ipairs(conts) do
+		if cont.action and not addedActions[cont.action] then
+			ltuiElements.addActionButton(dialog, cont.action, self)
+			addedActions[cont.action] = true
+		end
+	end
+end
+
+function ltuiElements.parallelDialog(self, tasks)
+	local dialog = app.main:maindialog()
+	dialog:tasklist():clear()
+	dialog:buttons():clear()
+	dialog:text():text_set("Task: "..self.__name)
+	dialog:button_add("quit", "< Quit >", "cm_quit")
+	dialog:button_add("back", "< Back >", function()
+		-- TODO: return to parent task instead of to root
+		app.main:dialog_root()
+	end)
+	dialog:button_add("showtask", "< Show Task >", function()
+		log:print(pretty(dialog:tasklist():current()))
+		self:show()
+	end)
+	
+	for _, t in ipairs(tasks) do
+		dialog:tasklist():task_add(t, t, "Parallel task: ")
+	end
+end
+
 local function genericDialog(dialog, text, title)
 	dialog:background_set(app.main:maindialog():frame():background())
 	dialog:frame():background_set("cyan")

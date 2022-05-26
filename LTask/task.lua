@@ -71,35 +71,10 @@ end
 ---@param conts table `[ {type: string, fn: (a -> Task b)} ]`
 ---@return table `Task b`
 function task.step(t, conts)
-	local current = t
-	local function showUI(self)
-		local dialog = app.main:maindialog()
-		dialog:tasklist():clear()
-		dialog:buttons():clear()
-		dialog:text():text_set("Task: "..self.__name)
-		dialog:button_add("quit", "< Quit >", "cm_quit")
-		dialog:button_add("back", "< Back >", function()
-			-- TODO: return to parent task instead of to root
-			app.main:dialog_root()
-		end)
-		dialog:button_add("showtask", "< Show Task >", function()
-			current:show()
-		end)
-		
-		-- Add buttons for actions
-		local addedActions = {}
-		for _, cont in ipairs(conts) do
-			if cont.action and not addedActions[cont.action] then
-				ltuiElements.addActionButton(dialog, cont.action, self)
-				addedActions[cont.action] = true
-			end
-		end
-	end
-	
 	return task.new(function(self, options)
 		local next
 		while not next and not t.stable do
-			if options.showUI then showUI(self) end
+			if options.showUI then ltuiElements.stepDialog(self, conts, t) end
 			options.showUI = false
 			t:resume(options)
 			self.__name = "step (left, "..t.__name..")"
@@ -110,10 +85,10 @@ function task.step(t, conts)
 		if not next then error("no matching continuation for stable task") end
 		
 		-- Step happens here
-		current = next
+		ltuiElements.stepDialog(self, conts, next)
 		
 		while not self.stable do
-			if options.showUI then showUI(self) end
+			if options.showUI then ltuiElements.stepDialog(self, conts, next) end
 			options.showUI = false
 			next:resume(options)
 			self.__name = "step (right, "..next.__name..")"
@@ -156,30 +131,10 @@ end
 ---@param tasks table `[Task a]`
 ---@return table `Task [{value: a, stable: boolean}]`
 function task.parallel(tasks)
-	local function showUI(self)
-		local dialog = app.main:maindialog()
-		dialog:tasklist():clear()
-		dialog:buttons():clear()
-		dialog:text():text_set("Task: "..self.__name)
-		dialog:button_add("quit", "< Quit >", "cm_quit")
-		dialog:button_add("back", "< Back >", function()
-			-- TODO: return to parent task instead of to root
-			app.main:dialog_root()
-		end)
-		dialog:button_add("showtask", "< Show Task >", function()
-			log:print(pretty(dialog:tasklist():current()))
-			self:show()
-		end)
-		
-		for i, t in ipairs(tasks) do
-			dialog:tasklist():task_add(t, self, "Parallel task: ")
-		end
-	end
-	
 	return task.new(function(self, options)
 		self.value = {}
 		while not self.stable do
-			if options.showUI then showUI(self) end
+			if options.showUI then ltuiElements.parallelDialog(self, tasks) end
 			options.showUI = false
 			local taskNames = {}
 			for i, t in ipairs(tasks) do
