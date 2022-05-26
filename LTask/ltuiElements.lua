@@ -23,11 +23,14 @@ function ltuiElements.stepDialog(self, conts, current)
 	dialog:text():text_set("Task: "..self.__name)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
 	dialog:button_add("back", "< Back >", function()
-		-- TODO: return to parent task instead of to root
-		app.main:dialog_root()
+		if self.parent then
+			self.parent:show()
+		else
+			app.main:dialog_root()
+		end
 	end)
 	dialog:button_add("showtask", "< Show Task >", function()
-		current:show()
+		current:show(self)
 	end)
 	
 	-- Add buttons for actions
@@ -47,16 +50,15 @@ function ltuiElements.parallelDialog(self, tasks)
 	dialog:text():text_set("Task: "..self.__name)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
 	dialog:button_add("back", "< Back >", function()
-		-- TODO: return to parent task instead of to root
-		app.main:dialog_root()
-	end)
-	dialog:button_add("showtask", "< Show Task >", function()
-		log:print(pretty(dialog:tasklist():current()))
-		self:show()
+		if self.parent then
+			self.parent:show()
+		else
+			app.main:dialog_root()
+		end
 	end)
 	
 	for _, t in ipairs(tasks) do
-		dialog:tasklist():task_add(t, t, "Parallel task: ")
+		dialog:tasklist():task_add(t, t)
 	end
 end
 

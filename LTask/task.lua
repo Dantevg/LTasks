@@ -39,7 +39,7 @@ function task.transform(t, fn)
 	return task.new(function(self, options)
 		while not self.stable do
 			t:resume(options)
-			self.__name = "transform ("..t.__name..")"
+			self.__name = t.__name -- Transform is transparent
 			self.value, self.stable = fn(t.value, t.stable)
 			if self.stable == nil then self.stable = t.stable end
 			self, options = coroutine.yield()
@@ -75,11 +75,11 @@ end
 function task.step(t, conts)
 	return task.new(function(self, options)
 		local matching = {}
+		self.parent = options.parent
 		while #matching == 0 and not t.stable do
 			self.__name = "step (left, "..t.__name..")"
 			if options.showUI then ltuiElements.stepDialog(self, conts, t) end
-			options.showUI = false
-			t:resume(options)
+			t:resume(options, false, self)
 			matching = matchTypes(t.value, t.stable, options.action, conts)
 			if #matching == 0 then self, options = coroutine.yield() end
 		end
@@ -102,14 +102,12 @@ function task.step(t, conts)
 			next = matching[1]
 		end
 		
-		options.showUI = true -- Always show UI the first time after step
-		next:resume({showUI = true}) -- Automatically show continuation
+		next:show(self) -- Automatically show continuation
 		
 		while not self.stable do
 			self.__name = "step (right, "..next.__name..")"
 			if options.showUI then ltuiElements.stepDialog(self, {}, next) end
-			options.showUI = false
-			next:resume(options)
+			next:resume(options, false, self)
 			self.value, self.stable = next.value, next.stable
 			self, options = coroutine.yield()
 		end
@@ -156,14 +154,14 @@ function task.parallel(tasks)
 	end
 	
 	return task.new(function(self, options)
+		self.parent = options.parent
 		self.value = {}
 		while not self.stable do
 			self.__name = "parallel ("..table.concat(getTaskNames(), ", ")..")"
 			if options.showUI then ltuiElements.parallelDialog(self, tasks) end
-			options.showUI = false
 			for i, t in ipairs(tasks) do
 				if not t.stable then
-					t:resume(options)
+					t:resume(options, false, self)
 					self.value[i] = {value = t.value, stable = t.stable}
 				end
 			end
@@ -242,18 +240,31 @@ end
 
 
 
-function task:resume(options)
+---Resumes the coroutine of the task with the given options
+---@param options table
+---@param showUI boolean? if set, sets `options.showUI` to this value
+---@param parent table? if set, sets `options.parent` to this value
+---@return any value
+---@return boolean stability
+function task:resume(options, showUI, parent)
 	if self.stable then return self.value end
 	if coroutine.status(self.co) == "dead" then return end
 	
-	local success, err = coroutine.resume(self.co, self, options or {})
+	options = options or {}
+	if showUI ~= nil then options.showUI = showUI end
+	if parent ~= nil then options.parent = parent end
+	local success, err = coroutine.resume(self.co, self, options)
 	
 	if not success then error(err) end
 	return self.value, self.stable
 end
 
-function task:show()
-	self:resume({showUI = true})
+---Resumes the task with `options.showUI` enabled
+---@param parent table
+---@return any value
+---@return boolean stability
+function task:show(parent)
+	return self:resume({showUI = true, parent = parent})
 end
 
 task.__band = task.parallelAnd

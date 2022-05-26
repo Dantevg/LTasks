@@ -48,14 +48,13 @@ function tasklist:nextbounds()
 	end
 end
 
-function tasklist:task_add(t, parent, prefix)
+function tasklist:task_add(t, parent)
 	local button = ltui.button:new(
 		"button.task."..self._VIEWS:size() + 1,
 		self:nextbounds(),
-		(prefix or "")..t.__name,
-		function() t:show() end
+		t.__name,
+		function() t:show(parent) end
 	)
-	button:extra_set("parent", parent)
 	self:insert(button)
 end
 
