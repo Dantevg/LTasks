@@ -25,7 +25,7 @@ function task.constant(value)
 	return task.new(function(self)
 		self.value = value
 		self.stable = true
-	end)
+	end, "constant")
 end
 
 ---Transform the result of task `t` with function `fn`.
@@ -102,6 +102,7 @@ function task.step(t, conts)
 			next = matching[1]
 		end
 		
+		options.showUI = true -- Show self to reflect stepped task
 		next:show(self) -- Automatically show continuation
 		
 		while not self.stable do

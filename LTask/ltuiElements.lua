@@ -29,9 +29,8 @@ function ltuiElements.stepDialog(self, conts, current)
 			app.main:dialog_root()
 		end
 	end)
-	dialog:button_add("showtask", "< Show Task >", function()
-		current:show(self)
-	end)
+	
+	dialog:tasklist():task_add(current)
 	
 	-- Add buttons for actions
 	local addedActions = {}
@@ -58,7 +57,7 @@ function ltuiElements.parallelDialog(self, tasks)
 	end)
 	
 	for _, t in ipairs(tasks) do
-		dialog:tasklist():task_add(t, t)
+		dialog:tasklist():task_add(t)
 	end
 end
 

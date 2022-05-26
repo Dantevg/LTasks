@@ -1,28 +1,19 @@
 local ltui = require "ltui"
 local pretty = require "pretty"
 local ltuiElements = require "LTask.ltuiElements"
-local editor = require "LTask.tuiEditor"
+local editor = require "LTask.ltuiEditor"
 
 local log = require "ltui.base.log"
 log._LOGFILE = "ltui_log.txt"
 
 local app = require "LTask.ltuiApp"
 
---[[
-	TODO:
-	- step and parallel make new main dialogs
-	- step has one button item
-	  - first it opens the left task
-	  - when stepped, it opens the right task
-	- parallel has two button items (or as many as there are parallel tasks)
-]]
-
 function app:dialog_root()
 	self:maindialog():tasklist():clear()
 	self:maindialog():buttons():clear()
 	self:maindialog():text():text_set("Root dialog")
 	
-	self:maindialog():tasklist():task_add(self.task, nil, "Root task: ")
+	self:maindialog():tasklist():task_add(self.task)
 	
 	self:maindialog():button_add("quit", "< Quit >", "cm_quit")
 	-- self:maindialog():button_add("showtask", "< Show Task >", function()
@@ -33,7 +24,7 @@ end
 function app:init()
 	app.main = self
 	ltui.application.init(self, "demo")
-	self:background_set("blue")
+	self:background_set(self.accent)
 	self:insert(self:maindialog())
 	
 	-- self.task = editor.editBoolean(true, "Enter Information:") .. {{
@@ -47,14 +38,19 @@ function app:init()
 	
 	local colourEditor = editor.editOptions("green", {"red", "green", "blue"})
 	local numberEditor = editor.editNumber(41, "edit number:")
-	-- local booleanEditor = editor.editBoolean(true, "edit boolean:")
+	local booleanEditor = editor.editBoolean(true, "edit boolean:")
 
-	self.task = (colourEditor | numberEditor) .. {
+	self.task = (colourEditor | numberEditor | booleanEditor) .. {
 		{
 			type = "string",
 			action = "continue",
 			fn = function(value) return editor.viewInformation(value, "colour output:") end
 		},
+		-- {
+		-- 	type = "string",
+		-- 	action = "continue",
+		-- 	fn = function(value) return editor.viewInformation(value, "test output:") end
+		-- },
 		{
 			type = "number",
 			action = "continue",
@@ -79,11 +75,7 @@ end
 
 -- Called every loop iteration
 function app:on_refresh()
-	if self.task then
-		self.task:resume()
-		-- Do not do :text_set() because it will mess up the focus or something
-		-- self:maindialog():tasklist():view("button.task.root")._TEXT = "Root task: "..self.task.__name
-	end
+	if self.task then self.task:resume() end
 	
 	ltui.application.on_refresh(self)
 end
