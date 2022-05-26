@@ -48,15 +48,17 @@ function task.transform(t, fn)
 end
 
 local function matchTypes(value, stable, action, conts)
-	-- volgorde is belangrijk, niet veranderen!
+	-- Order is important
+	local matching = {}
 	for _, cont in ipairs(conts) do
-		-- nil type signifies any type
+		-- nil type signifies any type for now
 		if (type(value) == cont.type or cont.type == nil)
 				and (action == cont.action or cont.action == nil) then
 			local next = cont.fn(value, stable)
-			if next ~= nil then return next end
+			if next ~= nil then table.insert(matching, next) end
 		end
 	end
+	return matching
 end
 
 ---Sequential combinator. Performs task `t` followed by the task returned by
@@ -72,26 +74,42 @@ end
 ---@return table `Task b`
 function task.step(t, conts)
 	return task.new(function(self, options)
-		local next
-		while not next and not t.stable do
+		local matching = {}
+		while #matching == 0 and not t.stable do
+			self.__name = "step (left, "..t.__name..")"
 			if options.showUI then ltuiElements.stepDialog(self, conts, t) end
 			options.showUI = false
 			t:resume(options)
-			self.__name = "step (left, "..t.__name..")"
-			next = matchTypes(t.value, t.stable, options.action, conts)
-			if not next then self, options = coroutine.yield() end
+			matching = matchTypes(t.value, t.stable, options.action, conts)
+			if #matching == 0 then self, options = coroutine.yield() end
 		end
 		
-		if not next then error("no matching continuation for stable task") end
+		if #matching == 0 then error("no matching continuation for stable task") end
 		
 		-- Step happens here
-		ltuiElements.stepDialog(self, conts, next)
+		local next, nextNames = nil, {}
+		if #matching > 1 then
+			-- Allow user to choose continuation
+			for _, nextTask in ipairs(matching) do table.insert(nextNames, nextTask.__name) end
+			app.main:insert(
+				ltuiElements.choiceEditor(nextNames[1], nextNames,
+					function(_, idx) return matching[idx] end, nil,
+					function(val) next = val end),
+				{centerx = true, centery = true}
+			)
+			while not next do self, options = coroutine.yield() end
+		else
+			next = matching[1]
+		end
+		
+		options.showUI = true -- Always show UI the first time after step
+		next:resume({showUI = true}) -- Automatically show continuation
 		
 		while not self.stable do
-			if options.showUI then ltuiElements.stepDialog(self, conts, next) end
+			self.__name = "step (right, "..next.__name..")"
+			if options.showUI then ltuiElements.stepDialog(self, {}, next) end
 			options.showUI = false
 			next:resume(options)
-			self.__name = "step (right, "..next.__name..")"
 			self.value, self.stable = next.value, next.stable
 			self, options = coroutine.yield()
 		end
@@ -131,20 +149,24 @@ end
 ---@param tasks table `[Task a]`
 ---@return table `Task [{value: a, stable: boolean}]`
 function task.parallel(tasks)
+	local function getTaskNames()
+		local taskNames = {}
+		for _, t in ipairs(tasks) do table.insert(taskNames, t.__name) end
+		return taskNames
+	end
+	
 	return task.new(function(self, options)
 		self.value = {}
 		while not self.stable do
+			self.__name = "parallel ("..table.concat(getTaskNames(), ", ")..")"
 			if options.showUI then ltuiElements.parallelDialog(self, tasks) end
 			options.showUI = false
-			local taskNames = {}
 			for i, t in ipairs(tasks) do
-				table.insert(taskNames, t.__name)
 				if not t.stable then
 					t:resume(options)
 					self.value[i] = {value = t.value, stable = t.stable}
 				end
 			end
-			self.__name = "parallel ("..table.concat(taskNames, ", ")..")"
 			self.stable = allStable(tasks)
 			self, options = coroutine.yield()
 		end

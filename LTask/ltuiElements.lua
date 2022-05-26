@@ -129,7 +129,7 @@ end
 ---@param value any the initial value
 ---@param choices table the list of possible choices
 ---@param converter function|table? the function to use for converting the values
----@param prompt table?
+---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
 function ltuiElements.choiceEditor(value, choices, converter, prompt, callback)

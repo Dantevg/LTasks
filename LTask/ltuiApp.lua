@@ -14,11 +14,6 @@ function app:maindialog()
 	return self._MAINDIALOG
 end
 
-function app:nextbounds()
-	local last = self:maindialog():tasklist():last()
-	return last and last:bounds()():move(0, 1) or ltui.rect:new(0, 0, self:maindialog():width(), 1)
-end
-
 -- resultdialog, inputdialog, choicedialog from:
 -- https://github.com/tboox/ltui/blob/master/src/ltui/mconfdialog.lua
 
