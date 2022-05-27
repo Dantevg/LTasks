@@ -1,6 +1,7 @@
 local ltui = require "ltui"
 local pretty = require "pretty"
 local ltuiElements = require "LTask.ltuiElements"
+local task = require "LTask.task"
 local editor = require "LTask.ltuiEditor"
 
 local log = require "ltui.base.log"
@@ -40,7 +41,7 @@ function app:init()
 	local numberEditor = editor.editNumber(41, "edit number:")
 	local booleanEditor = editor.editBoolean(true, "edit boolean:")
 
-	self.task = (colourEditor | numberEditor | booleanEditor) .. {
+	self.task = task.anyTask {colourEditor, numberEditor, booleanEditor} .. {
 		{
 			type = "string",
 			action = "continue",
