@@ -7,6 +7,7 @@ local pretty = require "pretty"
 local app = ltui.application()
 
 app.accent = "cyan"
+app.pretty = pretty.new {coloured = false}
 
 function app:maindialog()
 	if not self._MAINDIALOG then
@@ -53,9 +54,12 @@ function app:inputdialog()
 				config.callback(dialog_input:textedit():text(), config)
 			end
 			dialog_input:quit()
+			if config.onclose then config.onclose(config) end
 		end)
 		dialog_input:button_add("cancel", "< Cancel >", function()
 			dialog_input:quit()
+			local config = dialog_input:extra("config")
+			if config.onclose then config.onclose(config) end
 		end)
 		dialog_input:button_select("ok")
 		self._INPUTDIALOG = dialog_input

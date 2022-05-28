@@ -78,15 +78,17 @@ function ltuiElements.stringView(value, prompt)
 		(prompt and tostring(prompt).." " or "")..tostring(value), nil)
 end
 
-local function inputEditor(value, converter, prompt, callback)
+local function inputEditor(value, converter, prompt, callback, onclose)
 	local dialog = genericDialog(app.main:inputdialog(), prompt, nil)
 	dialog:textedit():text_set(converter(value) ~= nil and tostring(converter(value)) or "")
 	dialog:panel():select(dialog:textedit())
+	dialog:extra("config").value = value
 	dialog:extra("config").callback = function(val, config)
 		local converted = converter(val)
 		config.value = converted
 		callback(converted, dialog)
 	end
+	dialog:extra("config").onclose = onclose
 	return dialog
 end
 
@@ -95,9 +97,8 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.stringEditor(value, prompt, callback)
-	local dialog = inputEditor(value, tostring, prompt or "please input text:", callback)
-	dialog:extra("config").value = value
+function ltuiElements.stringEditor(value, prompt, callback, onclose)
+	local dialog = inputEditor(value, tostring, prompt or "please input text:", callback, onclose)
 	dialog:extra("config").type = "string"
 	return dialog
 end
@@ -107,16 +108,17 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.numberEditor(value, prompt, callback)
-	local dialog = inputEditor(value, tonumber, prompt or "please input number:", callback)
-	dialog:extra("config").value = value
+function ltuiElements.numberEditor(value, prompt, callback, onclose)
+	local dialog = inputEditor(value, tonumber, prompt or "please input number:", callback, onclose)
 	dialog:extra("config").type = "number"
 	return dialog
 end
 
-local function choiceEditor(value, choices, converter, prompt, callback)
+local function choiceEditor(value, choices, converter, prompt, callback, onclose)
 	local dialog = genericDialog(app.main:choicedialog(), prompt, nil)
+	dialog:extra("config").value = value
 	dialog:extra("config").callback = callback
+	dialog:extra("config").onclose = onclose
 	dialog:choicebox():load(choices, value)
 	dialog:choicebox():action_set(ltui.action.ac_on_selected, function(_, index, choice)
 		dialog:extra("config").value = converter(choice, index)
@@ -131,7 +133,7 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.choiceEditor(value, choices, converter, prompt, callback)
+function ltuiElements.choiceEditor(value, choices, converter, prompt, callback, onclose)
 	if not converter then
 		converter = function(v) return v end
 	elseif type(converter) == "table" then
@@ -144,11 +146,39 @@ function ltuiElements.choiceEditor(value, choices, converter, prompt, callback)
 	
 	local dialog = choiceEditor(optionsSet[value], choices,
 		function(v, i) if optionsSet[v] then return converter(v, i) end end,
-		prompt or ("choose from "..table.concat(choices, ", ")..":"), callback)
-	dialog:extra("config").value = value
+		prompt or ("choose from "..table.concat(choices, ", ")..":"), callback, onclose)
 	dialog:extra("config").type = "choice"
 	dialog:extra("config").values = choices
 	return dialog
+end
+
+function ltuiElements.tableEditor(self, editors, prompt, callback)
+	local dialog = app.main:maindialog()
+	dialog:tasklist():clear()
+	dialog:buttons():clear()
+	dialog:text():text_set(prompt)
+	dialog:button_add("quit", "< Quit >", "cm_quit")
+	dialog:button_add("back", "< Back >", function()
+		if self.parent then
+			self.parent:show()
+		else
+			app.main:dialog_root()
+		end
+	end)
+	dialog:button_add("add", "< Add >", function()
+		-- TODO: implement
+	end)
+	
+	for name, editor in pairs(editors) do
+		dialog:tasklist():task_add(editor, name..":", self)
+	end
+	
+	local value = {}
+	for key, editor in pairs(editors) do
+		value[key] = editor.value
+	end
+	
+	callback(value)
 end
 
 return ltuiElements

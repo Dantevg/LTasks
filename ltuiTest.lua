@@ -28,41 +28,51 @@ function app:init()
 	self:background_set(self.accent)
 	self:insert(self:maindialog())
 	
-	-- self.task = editor.editBoolean(true, "Enter Information:") .. {{
+	-- self.task = editor.editNumber(41, "Enter Information:") .. {{
 	-- 	type = "number",
 	-- 	action = "continue",
 	-- 	fn = function(value)
-	-- 		if value then return editor.viewInformation(value, "The information:") end
+	-- 		if value > 41 then return editor.viewInformation(value, "The information:") end
 	-- 	end
 	-- }}
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
 	
-	local colourEditor = editor.editOptions("green", {"red", "green", "blue"})
-	local numberEditor = editor.editNumber(41, "edit number:")
-	local booleanEditor = editor.editBoolean(true, "edit boolean:")
-
-	self.task = task.anyTask {colourEditor, numberEditor, booleanEditor} .. {
+	self.task = editor.editTable({
+		num = editor.editNumber(41, "Enter Information:")
+	}, "edit a table") .. {
 		{
-			type = "string",
+			type = "table",
 			action = "continue",
-			fn = function(value) return editor.viewInformation(value, "colour output:") end
-		},
-		-- {
-		-- 	type = "string",
-		-- 	action = "continue",
-		-- 	fn = function(value) return editor.viewInformation(value, "test output:") end
-		-- },
-		{
-			type = "number",
-			action = "continue",
-			fn = function(value) return editor.viewInformation(value, "number output:") end
-		},
-		{
-			type = "boolean",
-			action = "continue",
-			fn = function(value) return editor.viewInformation(value, "boolean output:") end
-		},
+			fn = function(value) return editor.viewInformation(app.pretty(value)) end
+		}
 	}
+	
+	-- local colourEditor = editor.editOptions("green", {"red", "green", "blue"})
+	-- local numberEditor = editor.editNumber(41, "edit number:")
+	-- local booleanEditor = editor.editBoolean(true, "edit boolean:")
+
+	-- self.task = task.anyTask {colourEditor, numberEditor, booleanEditor} .. {
+	-- 	{
+	-- 		type = "string",
+	-- 		action = "continue",
+	-- 		fn = function(value) return editor.viewInformation(value, "colour output:") end
+	-- 	},
+	-- 	{
+	-- 		type = "string",
+	-- 		action = "continue",
+	-- 		fn = function(value) return editor.viewInformation(value, "test output:") end
+	-- 	},
+	-- 	{
+	-- 		type = "number",
+	-- 		action = "continue",
+	-- 		fn = function(value) return editor.viewInformation(value, "number output:") end
+	-- 	},
+	-- 	{
+	-- 		type = "boolean",
+	-- 		action = "continue",
+	-- 		fn = function(value) return editor.viewInformation(value, "boolean output:") end
+	-- 	},
+	-- }
 	
 	self:dialog_root()
 	-- self.task:show()

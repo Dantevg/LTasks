@@ -4,7 +4,6 @@ local ltui = require "ltui"
 local app = require "LTask.ltuiApp"
 
 local log = require "ltui.base.log"
-local pretty = require "pretty"
 
 local editor = {}
 
@@ -34,10 +33,10 @@ end
 
 local function genericEditor(value, showUI, name)
 	return task.new(function(self, options)
+		self.parent = options.parent
 		self.value = value
-		-- self.value = dialog:extra("config").value
 		while true do
-			self.__name = name.." ("..tostring(self.value)..")"
+			self.__name = name.." ("..app.pretty(self.value)..")"
 			if options.showUI then showUI(self) end
 			self, options = coroutine.yield()
 		end
@@ -51,7 +50,11 @@ end
 function editor.editString(value, prompt)
 	return genericEditor(value, function(self)
 		local dialog = ltuiElements.stringEditor(self.value, prompt,
-			function(val) self.value = val end)
+			function(val)
+				self.value = val
+				self.__name = "editString".." ("..tostring(self.value)..")"
+			end,
+			function() if self.parent then self.parent:show() end end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editString")
@@ -64,7 +67,11 @@ end
 function editor.editNumber(value, prompt)
 	return genericEditor(value, function(self)
 		local dialog = ltuiElements.numberEditor(self.value, prompt,
-			function(val) self.value = val end)
+			function(val)
+				self.value = val
+				self.__name = "editNumber".." ("..tostring(self.value)..")"
+			end,
+			function() if self.parent then self.parent:show() end end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editNumber")
@@ -79,7 +86,12 @@ end
 function editor.editOptions(value, choices, converter, prompt)
 	return genericEditor(value, function(self)
 		local dialog = ltuiElements.choiceEditor(self.value ~= nil and tostring(self.value) or "",
-			choices, converter, prompt, function(val) self.value = val end)
+			choices, converter, prompt,
+			function(val)
+				self.value = val
+				self.__name = "editOptions".." ("..tostring(self.value)..")"
+			end,
+			function() if self.parent then self.parent:show() end end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editOptions")
@@ -94,6 +106,17 @@ function editor.editBoolean(value, prompt)
 		{"true", "false"}, {true, false}, prompt)
 	t.__name = "editBoolean"
 	return t
+end
+
+---An editor for tables.
+---@param editors table the sub-editors
+---@param prompt string?
+---@return table task the resulting editor task
+function editor.editTable(editors, prompt)
+	return genericEditor({}, function(self)
+		ltuiElements.tableEditor(self, editors, prompt,
+			function(val) self.value = val end)
+	end, "editTable")
 end
 
 return editor
