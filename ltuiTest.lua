@@ -38,7 +38,8 @@ function app:init()
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
 	
 	self.task = editor.editTable({
-		num = editor.editBoolean(true, "Enter Information:")
+		num = editor.editBoolean(true, "Enter Information:"),
+		editor.editNumber(41, "Enter Number:"),
 	}, "edit a table") .. {
 		{
 			type = "table",

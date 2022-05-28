@@ -158,10 +158,9 @@ end
 ---@param editors table the list of possible choices
 ---@param prompt string?
 ---@param callback function the callback function
----@param onAdd function the callback function for adding a new key
 ---@param onRemove function the callback function for removing a key
 ---@return table element the resulting editor UI element
-function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd, onRemove)
+function ltuiElements.tableEditor(self, editors, prompt, callback, onRemove)
 	local dialog = app.main:maindialog()
 	dialog:tasklist():clear()
 	dialog:tasklist().on_event = function(s, e)
@@ -174,7 +173,7 @@ function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd, onRemo
 			end
 			return true
 		end
-		tasklist.on_event(s, e)
+		return tasklist.on_event(s, e)
 	end
 	dialog:buttons():clear()
 	dialog:text():text_set("Task: "..self.__name.."\n"..prompt)
@@ -186,16 +185,8 @@ function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd, onRemo
 			app.main:dialog_root()
 		end
 	end)
-	dialog:button_add("add", "< Add >", function()
-		local dialog_name = ltuiElements.stringEditor("", "enter a name",
-			function(editorName)
-				local dialog_type = ltuiElements.choiceEditor("string",
-					{"string", "number", "boolean", "table"}, nil, "choose a type",
-					function(editorType) onAdd(editorName, editorType) end)
-				app.main:insert(dialog_type, {centerx = true, centery = true})
-			end)
-		app.main:insert(dialog_name, {centerx = true, centery = true})
-	end)
+	ltuiElements.addActionButton(dialog, "add named", self)
+	ltuiElements.addActionButton(dialog, "add array", self)
 	
 	for name, editor in pairs(editors) do
 		dialog:tasklist():task_add(editor, name..":", self)
