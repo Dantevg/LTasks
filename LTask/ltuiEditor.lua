@@ -28,7 +28,7 @@ function editor.viewInformation(value, prompt)
 			if options.showUI then showUI() end
 			self, options = coroutine.yield()
 		end
-	end, "viewInformation ("..(prompt and tostring(prompt).." " or "")..tostring(value)..")")
+	end, "viewInformation ("..(prompt and tostring(prompt).." " or "")..tostring(value)..")", value)
 end
 
 local function genericEditor(value, showUI, name)
@@ -40,11 +40,11 @@ local function genericEditor(value, showUI, name)
 			if options.showUI then showUI(self) end
 			self, options = coroutine.yield()
 		end
-	end, name)
+	end, name.." ("..app.pretty(value)..")", value)
 end
 
 ---An editor for strings.
----@param value string the initial value
+---@param value string? the initial value
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editString(value, prompt)
@@ -53,15 +53,15 @@ function editor.editString(value, prompt)
 			function(val)
 				self.value = val
 				self.__name = "editString".." ("..tostring(self.value)..")"
-			end,
-			function() if self.parent then self.parent:show() end end)
+				if self.parent then self.parent:show() end
+			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editString")
 end
 
 ---An editor for numbers.
----@param value number the initial value
+---@param value number? the initial value
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editNumber(value, prompt)
@@ -70,8 +70,8 @@ function editor.editNumber(value, prompt)
 			function(val)
 				self.value = val
 				self.__name = "editNumber".." ("..tostring(self.value)..")"
-			end,
-			function() if self.parent then self.parent:show() end end)
+				if self.parent then self.parent:show() end
+			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
 	end, "editNumber")
@@ -83,39 +83,53 @@ end
 ---@param converter function|table? the function to use for converting the values
 ---@param prompt string?
 ---@return table element the resulting editor UI element
-function editor.editOptions(value, choices, converter, prompt)
+function editor.editOptions(value, choices, converter, prompt, name)
 	return genericEditor(value, function(self)
 		local dialog = ltuiElements.choiceEditor(self.value ~= nil and tostring(self.value) or "",
 			choices, converter, prompt,
 			function(val)
 				self.value = val
-				self.__name = "editOptions".." ("..tostring(self.value)..")"
-			end,
-			function() if self.parent then self.parent:show() end end)
+				self.__name = (name or "editOptions").." ("..tostring(self.value)..")"
+				if self.parent then self.parent:show() end
+			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
-	end, "editOptions")
+	end, name or "editOptions")
 end
 
 ---An editor for a pre-determined set of inputs.
----@param value boolean the initial value
+---@param value boolean? the initial value
 ---@param prompt string?
 ---@return table element the resulting editor UI element
 function editor.editBoolean(value, prompt)
-	local t = editor.editOptions(value and "true" or "false",
-		{"true", "false"}, {true, false}, prompt)
-	t.__name = "editBoolean"
-	return t
+	return editor.editOptions(value, {"true", "false"}, {true, false}, prompt, "editBoolean")
 end
 
 ---An editor for tables.
----@param editors table the sub-editors
+---@param editors table? the sub-editors
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editTable(editors, prompt)
-	return genericEditor({}, function(self)
-		ltuiElements.tableEditor(self, editors, prompt,
-			function(val) self.value = val end)
+	local value = {}
+	for key, ed in pairs(editors) do
+		value[key] = ed.value
+	end
+	
+	return genericEditor(value, function(self)
+		ltuiElements.tableEditor(self, editors or {}, prompt,
+			function(val) self.value = val end,
+			function(editorName, editorType)
+				if editorType == "string" then
+					editors[editorName] = editor.editString()
+				elseif editorType == "number" then
+					editors[editorName] = editor.editNumber()
+				elseif editorType == "boolean" then
+					editors[editorName] = editor.editBoolean()
+				elseif editorType == "table" then
+					editors[editorName] = editor.editTable()
+				end
+				self:show()
+			end)
 	end, "editTable")
 end
 

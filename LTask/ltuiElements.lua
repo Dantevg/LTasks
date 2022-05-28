@@ -78,7 +78,7 @@ function ltuiElements.stringView(value, prompt)
 		(prompt and tostring(prompt).." " or "")..tostring(value), nil)
 end
 
-local function inputEditor(value, converter, prompt, callback, onclose)
+local function inputEditor(value, converter, prompt, callback)
 	local dialog = genericDialog(app.main:inputdialog(), prompt, nil)
 	dialog:textedit():text_set(converter(value) ~= nil and tostring(converter(value)) or "")
 	dialog:panel():select(dialog:textedit())
@@ -88,7 +88,6 @@ local function inputEditor(value, converter, prompt, callback, onclose)
 		config.value = converted
 		callback(converted, dialog)
 	end
-	dialog:extra("config").onclose = onclose
 	return dialog
 end
 
@@ -97,8 +96,8 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.stringEditor(value, prompt, callback, onclose)
-	local dialog = inputEditor(value, tostring, prompt or "please input text:", callback, onclose)
+function ltuiElements.stringEditor(value, prompt, callback)
+	local dialog = inputEditor(value, tostring, prompt or "please input text:", callback)
 	dialog:extra("config").type = "string"
 	return dialog
 end
@@ -108,17 +107,16 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.numberEditor(value, prompt, callback, onclose)
-	local dialog = inputEditor(value, tonumber, prompt or "please input number:", callback, onclose)
+function ltuiElements.numberEditor(value, prompt, callback)
+	local dialog = inputEditor(value, tonumber, prompt or "please input number:", callback)
 	dialog:extra("config").type = "number"
 	return dialog
 end
 
-local function choiceEditor(value, choices, converter, prompt, callback, onclose)
+local function choiceEditor(value, choices, converter, prompt, callback)
 	local dialog = genericDialog(app.main:choicedialog(), prompt, nil)
 	dialog:extra("config").value = value
 	dialog:extra("config").callback = callback
-	dialog:extra("config").onclose = onclose
 	dialog:choicebox():load(choices, value)
 	dialog:choicebox():action_set(ltui.action.ac_on_selected, function(_, index, choice)
 		dialog:extra("config").value = converter(choice, index)
@@ -133,7 +131,7 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@return table element the resulting editor UI element
-function ltuiElements.choiceEditor(value, choices, converter, prompt, callback, onclose)
+function ltuiElements.choiceEditor(value, choices, converter, prompt, callback)
 	if not converter then
 		converter = function(v) return v end
 	elseif type(converter) == "table" then
@@ -146,17 +144,24 @@ function ltuiElements.choiceEditor(value, choices, converter, prompt, callback, 
 	
 	local dialog = choiceEditor(optionsSet[value], choices,
 		function(v, i) if optionsSet[v] then return converter(v, i) end end,
-		prompt or ("choose from "..table.concat(choices, ", ")..":"), callback, onclose)
+		prompt or ("choose from "..table.concat(choices, ", ")..":"), callback)
 	dialog:extra("config").type = "choice"
 	dialog:extra("config").values = choices
 	return dialog
 end
 
-function ltuiElements.tableEditor(self, editors, prompt, callback)
+---An editor for tables.
+---@param self table the editor task
+---@param editors table the list of possible choices
+---@param prompt string?
+---@param callback function the callback function
+---@param onAdd function the callback function for adding a new key
+---@return table element the resulting editor UI element
+function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd)
 	local dialog = app.main:maindialog()
 	dialog:tasklist():clear()
 	dialog:buttons():clear()
-	dialog:text():text_set(prompt)
+	dialog:text():text_set("Task: "..self.__name.."\n"..prompt)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
 	dialog:button_add("back", "< Back >", function()
 		if self.parent then
@@ -166,7 +171,14 @@ function ltuiElements.tableEditor(self, editors, prompt, callback)
 		end
 	end)
 	dialog:button_add("add", "< Add >", function()
-		-- TODO: implement
+		local dialog_name = ltuiElements.stringEditor("", "enter a name",
+			function(editorName)
+				local dialog_type = ltuiElements.choiceEditor("string",
+					{"string", "number", "boolean", "table"}, nil, "choose a type",
+					function(editorType) onAdd(editorName, editorType) end)
+				app.main:insert(dialog_type, {centerx = true, centery = true})
+			end)
+		app.main:insert(dialog_name, {centerx = true, centery = true})
 	end)
 	
 	for name, editor in pairs(editors) do

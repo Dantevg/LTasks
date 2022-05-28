@@ -27,7 +27,7 @@ function app:resultdialog()
 			ltui.rect {0, 0, math.min(80, self:width() - 8), math.min(8, self:height())},
 			"output dialog"
 		)
-		dialog_result:button_add("close", "< Close >", function () dialog_result:quit() end)
+		dialog_result:button_add("close", "< Close >", function() dialog_result:quit() end)
 		dialog_result:background_set(self:maindialog():frame():background())
 		dialog_result:frame():background_set(self.accent)
 		dialog_result:option_set("scrollable", true)
@@ -49,17 +49,12 @@ function app:inputdialog()
 		dialog_input:textedit():option_set("multiline", false)
 		dialog_input:title():textattr_set("black")
 		dialog_input:button_add("ok", "< Ok >", function()
-			local config = dialog_input:extra("config")
-			if config.callback then
-				config.callback(dialog_input:textedit():text(), config)
-			end
 			dialog_input:quit()
-			if config.onclose then config.onclose(config) end
+			local config = dialog_input:extra("config")
+			if config.callback then config.callback(dialog_input:textedit():text(), config) end
 		end)
 		dialog_input:button_add("cancel", "< Cancel >", function()
 			dialog_input:quit()
-			local config = dialog_input:extra("config")
-			if config.onclose then config.onclose(config) end
 		end)
 		dialog_input:button_select("ok")
 		self._INPUTDIALOG = dialog_input
@@ -80,11 +75,9 @@ function app:choicedialog()
 		dialog_choice:title():textattr_set("black")
 		dialog_choice:button("select"):action_set(ltui.action.ac_on_enter, function()
 			dialog_choice:choicebox():on_event(ltui.event.command {"cm_enter"})
-			local config = dialog_choice:extra("config")
-			if config.callback then
-				config.callback(config.value, config)
-			end
 			dialog_choice:quit()
+			local config = dialog_choice:extra("config")
+			if config.callback then config.callback(config.value, config) end
 		end)
 		self._CHOICEDIALOG = dialog_choice
 	end

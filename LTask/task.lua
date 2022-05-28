@@ -7,10 +7,10 @@ local pretty = require "pretty"
 local task = {}
 task.__index = task
 
-function task.new(fn, name)
+function task.new(fn, name, value)
 	local self = {}
 	self.stable = false
-	self.value = nil
+	self.value = value
 	self.__name = name or ""
 	self.co = coroutine.create(fn)
 	return setmetatable(self, task)
