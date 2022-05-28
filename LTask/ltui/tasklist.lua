@@ -44,6 +44,7 @@ function tasklist:task_add(t, prefix, parent)
 		(prefix and prefix.." " or "")..t.__name,
 		function() t:show(parent) end
 	)
+	button:extra_set("task", t)
 	self:insert(button)
 end
 

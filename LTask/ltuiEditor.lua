@@ -129,6 +129,10 @@ function editor.editTable(editors, prompt)
 					editors[editorName] = editor.editTable()
 				end
 				self:show()
+			end,
+			function(name)
+				editors[name] = nil
+				self:show()
 			end)
 	end, "editTable")
 end

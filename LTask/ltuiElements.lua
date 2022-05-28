@@ -1,4 +1,5 @@
 local ltui = require "ltui"
+local tasklist = require "LTask.ltui.tasklist"
 local app = require "LTask.ltuiApp"
 
 local log = require "ltui.base.log"
@@ -19,6 +20,7 @@ end
 function ltuiElements.stepDialog(self, conts, current)
 	local dialog = app.main:maindialog()
 	dialog:tasklist():clear()
+	dialog:tasklist().on_event = tasklist.on_event
 	dialog:buttons():clear()
 	dialog:text():text_set("Task: "..self.__name)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
@@ -45,6 +47,7 @@ end
 function ltuiElements.parallelDialog(self, tasks)
 	local dialog = app.main:maindialog()
 	dialog:tasklist():clear()
+	dialog:tasklist().on_event = tasklist.on_event
 	dialog:buttons():clear()
 	dialog:text():text_set("Task: "..self.__name)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
@@ -156,10 +159,23 @@ end
 ---@param prompt string?
 ---@param callback function the callback function
 ---@param onAdd function the callback function for adding a new key
+---@param onRemove function the callback function for removing a key
 ---@return table element the resulting editor UI element
-function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd)
+function ltuiElements.tableEditor(self, editors, prompt, callback, onAdd, onRemove)
 	local dialog = app.main:maindialog()
 	dialog:tasklist():clear()
+	dialog:tasklist().on_event = function(s, e)
+		if e.type == ltui.event.ev_keyboard and e.key_name == "Delete" then
+			local current = dialog:tasklist():current()
+			if not current then return end
+			local selectedTask = current:extra("task")
+			for name, editor in pairs(editors) do
+				if editor == selectedTask then return onRemove(name) end
+			end
+			return true
+		end
+		tasklist.on_event(s, e)
+	end
 	dialog:buttons():clear()
 	dialog:text():text_set("Task: "..self.__name.."\n"..prompt)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
