@@ -30,7 +30,7 @@ function task.constant(value)
 	end, "constant")
 end
 
----Transform the result of task `t` with function `fn`.
+---Transform the resulting value and stability of task `t` with function `fn`.
 ---
 ---iTasks equivalent: [`transform`](https://cloogle.org/#transform)  
 ---`Task a, ((a, boolean) -> (b, boolean)) -> Task b`
@@ -43,10 +43,21 @@ function task.transform(t, fn)
 			t:resume(options)
 			self.__name = t.__name -- Transform is transparent
 			self.value, self.stable = fn(t.value, t.stable)
-			if self.stable == nil then self.stable = t.stable end
 			self, options = coroutine.yield()
 		end
 	end, "transform")
+end
+
+---Transform the result of task `t` with function `fn` without changing the
+---stability.
+---
+---iTasks equivalent: [`@`](https://cloogle.org/#@)  
+---`Task a, (a -> b) -> Task b`
+---@param t table `Task a`
+---@param fn function `a -> b`
+---@return table `Task b`
+function task.transformValue(t, fn)
+	return task.transform(t, function(value, stable) return fn(value), stable end)
 end
 
 local function matchTypes(value, stable, action, conts)
@@ -209,7 +220,8 @@ function task.parallelAnd(l, r)
 	return task.transform(
 		task.parallel {l, r},
 		function(values)
-			return {values[1].value, values[2].value}
+			return {values[1].value, values[2].value},
+				values[1].stable and values[2].stable
 		end
 	)
 end
@@ -233,7 +245,7 @@ end
 function task.parallelLeft(l, r)
 	return task.transform(
 		task.parallel {l, r},
-		function(values) return values[1].value end
+		function(values) return values[1].value, values[1].stable end
 	)
 end
 
@@ -246,7 +258,7 @@ end
 function task.parallelRight(l, r)
 	return task.transform(
 		task.parallel {l, r},
-		function(values) return values[2].value end
+		function(values) return values[2].value, values[2].stable end
 	)
 end
 
