@@ -1,3 +1,8 @@
+--[[--
+	This module uses the UI elements from ltuiElements.lua and converts them
+	to tasks.
+]]
+
 local task = require "LTask.task"
 local ltuiElements = require "LTask.ltuiElements"
 local ltui = require "ltui"

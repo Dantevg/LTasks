@@ -1,8 +1,10 @@
-local ltui = require "ltui"
+--[[--
+	This module contains functions for creating tasks and for composing them.
+]]
+
+local typed = require "typed"
 local ltuiElements = require "LTask.ltuiElements"
 local app = require "LTask.ltuiApp"
-local log = require "ltui.base.log"
-local pretty = require "pretty"
 
 local task = {}
 task.__index = task
@@ -172,18 +174,27 @@ function task.parallel(tasks)
 	end, "parallel")
 end
 
--- Perform tasks in parallel and return the first available value.
+-- Perform tasks in parallel and return the first stable value, or the first
+-- unstable value if there are no unstable values.
 --
 -- iTasks equivalent: [`anyTask`](https://cloogle.org/#anyTask)  
 -- `[Task a] -> Task a`
 function task.anyTask(tasks)
-	-- TODO: prioriteit aan stable values
 	return task.transform(
 		task.parallel(tasks),
 		function(values)
+			local unstableValue
 			for _, v in ipairs(values) do
-				if v.value ~= nil then return v.value, v.stable end
+				if v.value ~= nil and v.stable then
+					-- Stable value found, return immediately
+					return v.value, true
+				elseif v.value ~= nil then
+					-- Set first unstable value we find
+					unstableValue = v.value
+				end
 			end
+			-- No stable value found, return first unstable value found
+			return unstableValue, false
 		end
 	)
 end

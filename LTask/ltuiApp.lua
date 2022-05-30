@@ -1,3 +1,7 @@
+--[[--
+	This module defines the base elements that can be used.
+]]
+
 local ltui = require "ltui"
 local tasklistdialog = require "LTask.ltui.tasklistdialog"
 

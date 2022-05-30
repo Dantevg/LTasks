@@ -1,3 +1,8 @@
+--[[--
+	This module uses the base elements from ltuiApp.lua to make the UI for
+	editors and the combinators.
+]]
+
 local ltui = require "ltui"
 local tasklist = require "LTask.ltui.tasklist"
 local app = require "LTask.ltuiApp"
@@ -176,7 +181,7 @@ function ltuiElements.tableEditor(self, editors, prompt, callback, onRemove)
 		return tasklist.on_event(s, e)
 	end
 	dialog:buttons():clear()
-	dialog:text():text_set("Task: "..self.__name.."\n"..prompt)
+	dialog:text():text_set("Task: "..self.__name.."\nUse <DELETE> to remove elements.\n"..prompt)
 	dialog:button_add("quit", "< Quit >", "cm_quit")
 	dialog:button_add("back", "< Back >", function()
 		if self.parent then
