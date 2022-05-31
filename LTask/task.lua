@@ -81,9 +81,9 @@ end
 ---
 ---iTasks equivalent: [`step`](https://cloogle.org/#step)
 ---or [`>>*`](https://cloogle.org/#%3E%3E*)  
----`Task a, [ {type: string, fn: (a -> Task b)} ] -> Task b`
+---`Task a, [ {type: any, action: string?, fn: (a -> Task b)} ] -> Task b`
 ---@param t table `Task a`
----@param conts table `[ {type: string, fn: (a -> Task b)} ]`
+---@param conts table `[ {type: any, action: string?, fn: (a -> Task b)} ]`
 ---@return table `Task b`
 function task.step(t, conts)
 	return task.new(function(self, options)
@@ -128,21 +128,49 @@ function task.step(t, conts)
 	end, "step")
 end
 
+---Helper function for `step` combinator. Returns a continuation configuration
+---that matches when the given type and action match and there is any value.
+---@param type any the type that the continuation accepts
+---@param action string? the action that is needed for the continuation
+---@param cont function `a -> Task b`
+---@return table
+function task.onAction(type, action, cont)
+	return {
+		type = type,
+		action = action,
+		fn = function(value)
+			if value ~= nil then return cont(value) end
+		end
+	}
+end
+
+---Helper function for `step` combinator. Returns a continuation configuration
+---that matches when the given type matches and there is a stable value.
+---
+---iTasks equivalent: [`ifStable`](https://cloogle.org/#ifStable)
+---@param type any the type that the continuation accepts
+---@param cont function `a -> Task b`
+---@return table
+function task.ifStable(type, cont)
+	return {
+		type = type,
+		fn = function(value, stable)
+			if value ~= nil and stable then return cont(value) end
+		end
+	}
+end
+
 ---Sequential combinator with a single continuation. Continues when task `t`
 ---has a stable value.
 ---
 ---iTasks equivalent: [`>>-`](https://cloogle.org/#%3E%3E-)
 ---`Task a, (a -> Task b) -> Task b`
 ---@param t table `Task a`
+---@param type any the type that the continuation accepts
 ---@param cont function `a -> Task b`
 ---@return table `Task b`
-function task.stepStable(t, cont)
-	return task.step(t, {{
-		type = nil,
-		fn = function(value, stable)
-			if value ~= nil and stable then return cont(value) end
-		end
-	}})
+function task.stepStable(t, type, cont)
+	return task.step(t, { task.ifStable(type, cont) })
 end
 
 ---Sequential combinator with a single continuation. Continues when the user
@@ -154,22 +182,8 @@ end
 ---@param t table `Task a`
 ---@param cont function `a -> Task b`
 ---@return table `Task b`
-function task.stepButton(t, cont)
-	return task.step(t, {
-		{ -- When pressing "continue" button
-			type = nil,
-			action = "continue",
-			fn = function(value)
-				if value ~= nil then return cont(value) end
-			end
-		},
-		{ -- When value is stable
-			type = nil,
-			fn = function(value, stable)
-				if value ~= nil and stable then return cont(value) end
-			end
-		}
-	})
+function task.stepButtonStable(t, type, cont)
+	return task.step(t, { task.onAction("continue", type, cont), task.ifStable(type, cont) })
 end
 
 -- Returns whether all tasks in `tasks` have stable values.
