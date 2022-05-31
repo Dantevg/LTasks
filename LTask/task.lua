@@ -140,9 +140,36 @@ function task.stepStable(t, cont)
 	return task.step(t, {{
 		type = nil,
 		fn = function(value, stable)
-			if stable then return cont(value, stable) end
+			if value ~= nil and stable then return cont(value) end
 		end
 	}})
+end
+
+---Sequential combinator with a single continuation. Continues when the user
+---presses "continue" (only when task `t` has a value) or when task `t` has a
+---stable value.
+---
+---iTasks equivalent: [`>>?`](https://cloogle.org/#%3E%3E%3F)
+---`Task a, (a -> Task b) -> Task b`
+---@param t table `Task a`
+---@param cont function `a -> Task b`
+---@return table `Task b`
+function task.stepButton(t, cont)
+	return task.step(t, {
+		{ -- When pressing "continue" button
+			type = nil,
+			action = "continue",
+			fn = function(value)
+				if value ~= nil then return cont(value) end
+			end
+		},
+		{ -- When value is stable
+			type = nil,
+			fn = function(value, stable)
+				if value ~= nil and stable then return cont(value) end
+			end
+		}
+	})
 end
 
 -- Returns whether all tasks in `tasks` have stable values.
@@ -238,8 +265,6 @@ end
 
 -- Perform tasks `l` and `r` in parallel, yield only the result of task `l`
 --
--- Custom operator: `<<`
---
 -- iTasks equivalent: [`-||`](https://cloogle.org/#-%7C%7C)  
 -- `Task a, Task b -> Task a`
 function task.parallelLeft(l, r)
@@ -250,8 +275,6 @@ function task.parallelLeft(l, r)
 end
 
 -- Perform tasks `l` and `r` in parallel, yield only the result of task `r`
---
--- Custom operator: `>>`
 --
 -- iTasks equivalent: [`||-`](https://cloogle.org/#%7C%7C-)  
 ---`Task a, Task b -> Task b`
@@ -293,8 +316,6 @@ end
 
 task.__band = task.parallelAnd
 task.__bor = task.parallelOr
-task.__shl = task.parallelLeft
-task.__shr = task.parallelRight
 task.__concat = task.step
 
 return task
