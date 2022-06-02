@@ -1,0 +1,1 @@
+(makeTea -||- makeCoffee) -&&- makeSandwich >>- eatBreakfast

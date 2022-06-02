@@ -1,18 +1,37 @@
-\section{Task values}\label{section-task-values}
+\section{Tasks and task values}\label{section-task-values}
 
-\subsection{Task values in iTasks}
-Since iTasks is written in the functional language Clean, tasks are modelled as functions. The task function returns the task value and the task itself, among other values. \todo{explain}
+\subsection{Tasks in iTasks}
+Since iTasks is written in the functional language Clean, tasks are modelled as functions. Functions in Clean are pure; they cannot mutate existing values. Instead, task functions return the new version of a task, along with the value, any user interface changes, and other values we will not get into here. In listing \ref{lst:clean_task_taskresult_types} we can see that the task function (\clean{Task}) returns a \clean{TaskResult} and an \clean{IWorld}. \clean{IWorld} carries information about the entire TOP application such as the current clock, and we will not go into it further.
 
-\subsection{Task values in Lua}
-Lua does not have algebraic data types. Moreover, in contrast to Clean, mutation is normal and we can keep state by using tables and coroutines. There are two choices to be made here: whether to model tasks as tables or as functions / coroutines, and whether to separate the actual task value from its stability.
+\begin{figure}[ht]
+    \centering
+    \begin{minted}{clean}
+    :: Task a (=: Task` (Event -> TaskEvalOpts -> *IWorld
+            -> *(TaskResult a, *IWorld)))
+    
+    :: TaskResult a
+        = ValueResult !(TaskValue a) !TaskEvalInfo !UIChange !(Task a)
+        | ExceptionResult !TaskException
+        | DestroyedResult
+    
+    :: TaskValue a
+        = NoValue
+        | Value !a !Stability
+    \end{minted}
+    \caption{The types \clean{Task} and \clean{TaskResult} in Clean. \clean{TaskValue} from listing \ref{lst:clean_task_value} is repeated here for convenience.}
+    \label{lst:clean_task_taskresult_types}
+\end{figure}
+
+\subsection{Tasks in Lua}
+Lua does not have algebraic data types. Moreover, in contrast to Clean, mutation is normal and we can keep state by using tables. We can also use coroutines which makes modelling changing tasks more convenient, as execution can halt in the middle of a function and continue later on. There are two choices to be made here: whether to model tasks as functions / coroutines or as tables containing them, and whether to separate the actual task value from its stability.
 
 \subsubsection{Tasks as functions or coroutines}
-Close to how iTasks works in Clean, we can model tasks as functions or coroutines. If we choose to use functions, we cannot keep state and we return the task value and stability. If we choose to use coroutines, we yield the task value and stability instead of returning them. We can keep state using local variables within the coroutine.
+Close to how iTasks works in Clean, we can model tasks as functions or coroutines. If we choose to use functions, we cannot keep state and we return the task value and stability. If we choose to use coroutines, calling and returning gets replaced by resuming and yielding: we yield the task value and stability instead of returning them. We can keep state using local variables within the coroutine.
 
 \subsubsection{Tasks as tables}
-Making use of what Lua gives us, we can use tables to store state and a function or coroutine for the execution of the task. The effect of this is that all tasks that have a reference to the task can read its value at any time. Currently this is limited to tasks that are linked together by a combinator. This table can then also store whether the task value is stable or not. Another possibility that this opens up is that we can now define other functions that operate on this task's internals.
+Making use of what Lua gives us, we can use tables to store state and a function or coroutine for the execution of the task. The effect of this is that all tasks that have a reference to the task can read its value at any time. In iTasks this is limited to tasks that are linked together by a combinator. This table can then also store whether the task value is stable or not. Another possibility that this opens up is that we can now define other functions that operate on this task's internals.
 
-The downside of this is that task values can now be altered from outside. TOP means that tasks are autonomous: only the task itself can set its task value, and one task should not be able to modify the value of another task. This can be solved by not exposing the task value itself, but rather a function that reads from a private task value. There are multiple ways to do this, listing \ref{lst:lua_private} shows two of them. They both make use of a closure to hide the variable. Barring use of the \lua{debug} library\footnote{The \lua{debug} library violates multiple core assumptions about Lua code \cite{luareferencemanual}, so including it in considerations would not be appropriate.}, method \ref{lst:lua_private_a} makes the \lua{count} variable truly invisible and immutable from the outside. Method \ref{lst:lua_private_b} allows us to refer to the value itself instead of having to call a getter function, but its downside is that it only hides the \lua{count} variable behind a metatable. The example shows that it is possible to modify the variable with a detour.
+The downside of this is that task values can now be altered from outside. TOP means that tasks are autonomous: only the task itself can set its task value, and one task should not be able to modify the value of another task. This can be solved by not exposing the task value itself, but rather a function that reads from a private task value. There are multiple ways to do this, listing \ref{lst:lua_private} shows two of them.\todo{digression, remove or separate into appendix?} They both make use of a closure to hide the variable. Barring use of the \lua{debug} library\footnote{The \lua{debug} library violates multiple core assumptions about Lua code \cite{luareferencemanual}, so including it in considerations would not be appropriate.}, method \ref{lst:lua_private_a} makes the \lua{count} variable truly invisible and immutable from the outside. Method \ref{lst:lua_private_b} allows us to refer to the value itself instead of having to call a getter function, but its downside is that it only hides the \lua{count} variable behind a metatable. The example shows that it is possible to modify the variable with a detour.
 
 \begin{figure}[ht]
 \centering

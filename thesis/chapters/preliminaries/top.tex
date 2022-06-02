@@ -21,14 +21,18 @@ Tasks can have an \textit{intermediate value}. A task value can be in one of thr
 
 In iTasks, tasks can also throw \textit{exceptions}, implemented as returning an exception value \cite[\S 3.1.1]{plasmeijer2012task}. When it is clear that a task will never result in a meaningful value, it can raise an exception. This can happen for instance when a network connection fails.
 
-The task function in iTasks returns the task value and the task itself, among other values. The task value is modelled as an algebraic data type; it is either \textit{no value}, or a value together with a boolean signifying whether it is stable:
+The task function in iTasks returns the new version of a task, along with the value, any user interface changes, and other values we will not get into here. The task value is modelled as an algebraic data type; it is either \textit{no value}, or a value together with a boolean signifying whether it is stable. Listing \ref{lst:clean_task_value} shows the type definition in Clean.
 
-\medskip
-\begin{minted}{clean}
-:: TaskValue a
-    = NoValue
-    | Value !a !Stability
-\end{minted}
+\begin{figure}[ht]
+    \centering
+    \begin{minted}{clean}
+    :: TaskValue a
+        = NoValue
+        | Value !a !Stability
+    \end{minted}
+    \caption{The definition of \clean{TaskValue} in Clean. Note that a task with no value also has no stability.}
+    \label{lst:clean_task_value}
+\end{figure}
 
 \begin{figure}
     \centering

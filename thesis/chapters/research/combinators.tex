@@ -7,42 +7,6 @@ Lua does not allow defining custom operators, but you can change the behaviour o
 
 To make them easier to use, we can define a \lua{task} prototype that has all the combinators, and let all tasks inherit from this prototype using the \lua{__index} metatable entry.
 
-\subsection{Step}
-The step combinator executes one task and chooses another task to execute with the result of the first task. The result the step combinator is a task that has the value of the selected follow-up task. It is called \textit{step} because when it can execute one of the follow-up tasks, it steps to that task and does not go back anymore.
-
-In iTasks, the step combinator expects a list of \textit{task continuations}. Such a continuation defines a task that should be executed when some event happens. Such an event can be when a task has a stable value or when a task has a value that matches some predicate (\clean{OnValue}). It can also be when the user presses some button like `yes', `no', `ok' or `cancel' (\clean{OnAction}). For the proof of concept, we will only consider \clean{OnValue}. Listing \ref{lst:clean_onvalue_step} shows an example of using multiple \clean{OnValue} continuations. The step combinator only steps to a continuation if its predicate holds. If we simplify its signature from iTasks, we can get listing \ref{lst:clean_step}.
-
-\begin{figure}[ht]
-\centering
-\begin{minted}{clean}
-step :: (Task a) [(TaskValue a) -> ? Task b] -> Task b
-\end{minted}
-\caption{The simplified \clean{step} combinator's signature.}
-\label{lst:clean_step}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
-\begin{minted}{clean}
-getInput >>* [
-	OnValue (ifValue isPalindrome (showInput "you entered a palindrome: ")),
-	OnValue (ifValue isGreeting (showInput "you entered a greeting: "))]
-\end{minted}
-\caption{Using \clean{OnValue} with the step combinator. \clean{getInput} and \clean{showInput} are convenience wrappers around the iTasks functions \clean{enterInformation} and \clean{viewInformation}.}
-\label{lst:clean_onvalue_step}
-\end{figure}
-
-\subsubsection{Type matching}\label{section-combinators-type-matching}
-The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-task-types}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-editors-lua}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here.
-
-\paragraph{Best match or first match} When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. \dots
-
-\paragraph{Matching lists: length} If the continuation specifies a list length and if the actual list is longer than this length, does it still match? \dots
-
-\paragraph{Matching lists: types and order} A list in Lua can contain values of differing types at once. What happens if the actual list contains the right types but in the wrong order? \dots
-
-\paragraph{Matching tables} When a table has more fields than required, does it match? \dots
-
 \subsection{Parallel}
 If we bring the \clean{parallel} signature from iTasks down to its essence, we get listing \ref{lst:clean_parallel}. It takes a list of tasks, the task it returns has as its value a list of values of the original tasks.
 
@@ -54,3 +18,74 @@ parallel :: [Task a] -> Task [TaskValue a]
 \caption{The simplified \clean{parallel} combinator's signature.}
 \label{lst:clean_parallel}
 \end{figure}
+
+\subsection{Step}
+The step combinator executes one task and chooses another task to execute with the result of the first task. The result the step combinator is a task that has the value of the selected follow-up task. It is called \textit{step} because when it can execute one of the follow-up tasks, it steps to that task and does not go back anymore.
+
+In iTasks, the step combinator expects a list of \textit{task continuations}. Such a continuation defines a task that should be executed when some event happens. Such an event can be when a task has a stable value or when a task has a value that matches some predicate (\clean{OnValue}). It can also be when the user presses some button like `yes', `no', `ok' or `cancel' (\clean{OnAction}). For the proof of concept, we will initially only consider \clean{OnValue}, and add \clean{OnAction} later on. They are both important for a complete proof-of-concept of TOP. Listing \ref{lst:clean_onvalue_step} shows an example of using multiple \clean{OnValue} continuations, and listing . The step combinator only steps to a continuation if its predicate holds. If we simplify its signature from iTasks, we can get listing \ref{lst:clean_step}.
+
+\begin{figure}[ht]
+\centering
+\begin{minted}{clean}
+step :: (Task a) [TaskCont a (Task b)] -> Task b
+
+:: TaskCont a b
+    = OnValue ((TaskValue a) -> ? b)
+    | OnAction String ((TaskValue a) -> ? b)
+\end{minted}
+\caption{The simplified \clean{step} combinator's signature, together with the type definition of \clean{TaskCont} (also simplified).}
+\label{lst:clean_step}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{subfigure}{\textwidth}
+\centering
+\begin{minted}{clean}
+getInput >>* [
+    OnValue (ifValue isPalindrome (showInput "palindrome: ")),
+    OnValue (ifValue isGreeting (showInput "greeting: "))]
+\end{minted}
+\caption{The step combinator in Clean. \clean{getInput} and \clean{showInput} are convenience wrappers around the iTasks functions \clean{enterInformation} and \clean{viewInformation}.}
+\label{lst:clean_onvalue_step}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+\centering
+\medskip % space between subfigures
+\begin{minted}{lua}
+getInput .. {
+    {fn = function(value)
+        return isPalindrome(value) and showInput(value, "palindrome: ")
+    end},
+    {fn = function(value)
+        return isGreeting(value) and showInput(value, "greeting: ")
+    end}
+}
+\end{minted}
+\caption{The step combinator in Lua, using custom functionality for operators.}
+\label{lst:lua_onvalue_step}
+\end{subfigure}
+\caption{Using the step combinator with \clean{OnValue} in both Clean and Lua.}
+\end{figure}
+
+\subsection{Type matching}\label{section-combinators-type-matching}
+The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-task-types}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-editors-lua}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here. The syntax used here is the one from the Typed\footref{footnote-typed} library, which we decided to use in section \ref{section-task-types-luarocks}.
+
+There is a Lua library for matching data structures called Tamale\footnote{\url{https://luarocks.org/modules/luarocks/tamale}}. \dots\todo{expand}
+
+\subsubsection{Best match or first match}
+When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. This possibility of having multiple continuations that match is also present in iTasks, where the first match is used. Actually, in iTasks all continuations need to accept exactly the same type so it is not possible to find a ``best'' match. This limitation is not there in dynamically typed languages like Lua.
+
+We can define a \textit{better} match to be a more \textit{specific} one: \lua{"number"} is more specific than \lua{"string | number"}, because the first one does not accept stings. \lua{"table<string, number>"} is more specific than just \lua{"table"}, and a schema \lua{typed.Schema("person"):field("id", "number"):field("age", "number")} is even more specific than both of these.
+
+\subsubsection{Matching lists: types and order}
+A list in Lua can contain values of differing types at once. What happens if the actual list contains the right types but in the wrong order? The Typed library does not have functionality to define types for specific array indices, only for the entire array. Typescript calls this \textit{tuple types}\footnote{\label{footnote-typescript-tuple-types}\url{https://www.typescriptlang.org/docs/handbook/2/objects.html#tuple-types}} and they are in the TO-DO section of the library\footnote{\url{https://github.com/SovietKitsune/typed#todo}}.
+
+If we would allow changing the order of the types in an array, a continuation function expecting a string and a number could receive a number and a string instead. This can be done using an array of two types instead, but the Typed library does not support arrays of multiple types (both \lua{"TypedArray<number | string>"} and \lua{"(number | string)[]"} are not valid types).
+
+\subsubsection{Matching lists: length}
+If the continuation specifies a list length and if the actual list is longer than this length, does it still match? The Typed library also does not have functionality for specifying array length, but the decision is important if we would be able to specify the length (when not using Typed). List elements may have semantics, so if we choose to match a list that is longer than needed, we may discard important information. This can happen for example when we have a 3D vector that is represented as a list of its coordinates. If we have two continuations, one for 2D vectors and one for 3D vectors, we should not choose the 2D vector continuation. To prevent situations like this, we should not match lists with differing length. Typescript works around the issue in this example by providing tuple types\footref{footnote-typescript-tuple-types}.
+
+\subsubsection{Matching tables}
+Analogous to list length: when a table has more fields than required, does it match? The same 2D/3D vector example applies here, but with tables containing the fields \lua{x}, \lua{y} and \lua{z}.
+% If we do not match a table with extra fields, it can happen that we do not choose a continuation that is perfectly well able to handle the given table. If we do match a table that has extra fields when using first-match, we may never get to a more specific continuation.
+This problem can be solved in two ways: by using best-match or by manually ordering the continuations, most general continuation last.

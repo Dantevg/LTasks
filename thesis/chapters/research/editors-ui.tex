@@ -2,7 +2,7 @@
 There are many different ways of interfacing with users. iTasks uses a webpage for instance. But there are other graphical interfaces, as well as non-graphical ones. They all differ in usability for the user and ease of programming. We explored a JSON-based interface in section \ref{section-editors-lua}, which would be an especially non-user-friendly user interface.
 
 \subsection{HTML page}
-There is one well-known Lua librariy for and for interacting with the DOM through Javascript: Fengari\footnote{\url{https://fengari.io/}}. Fengari implements a Lua VM, so Lua code runs in the browser. We can also generate HTML using h5tk\footnote{\url{https://luarocks.org/modules/forflo/h5tk}} and serve it using
+There is one well-known Lua library for and for interacting with the DOM through Javascript: Fengari\footnote{\url{https://fengari.io/}}. Fengari implements a Lua VM, so Lua code runs in the browser. We can also generate HTML using h5tk\footnote{\url{https://luarocks.org/modules/forflo/h5tk}} and serve it using
 LuaSocket\footnote{\url{https://luarocks.org/modules/lunarmodules/luasocket}},
 http\footnote{\url{https://luarocks.org/modules/daurnimator/http}},
 Fullmoon\footnote{\url{https://github.com/pkulchenko/fullmoon}},
@@ -29,7 +29,10 @@ A native application has about the same usability as a webpage and costs a bit l
 The third way of displaying tasks somewhat graphically is by using a terminal emulator. There are a couple libraries for this:
 AbsTK\footref{footnote-abstk},
 ltui\footnote{\url{https://luarocks.org/modules/waruqi/ltui}},
-lua-tui\footnote{\url{https://github.com/daurnimator/lua-tui}}. The first two are more complete UI-building libraries while the last one is more of a toolbox. AbsTK is not available for windows but I also have not been able to get it installed in Ubuntu on WSL yet.
+termfx\footnote{\url{https://luarocks.org/modules/gunnar_z/termfx}},
+lua-tui\footnote{\url{https://github.com/daurnimator/lua-tui}}. The first three are more complete UI-building libraries while lua-tui is more of a toolbox. AbsTK is not available for windows but I also have not been able to get it installed in Ubuntu on WSL yet. Termfx uses the no-longer-maintained termbox which needs Python 2, and I have not gotten that to work either.
+
+For this thesis I chose to work with ltui. It is quite hard to start working with it because it has almost no documentation, but it does have the features needed for displaying tasks and editors. The way in which its example applications are structured is that there is one element of each type: one main dialog, one text input dialog, one output dialog, and so on. When one of these elements is needed, any old contents get replaced and it gets shown on screen.
 
 \subsection{Terminal command-line}
-Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this will be the initial interface of the proof of concept.
+Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this will be the initial interface of the proof of concept. Some features are too advanced for such a simple interface, they will only be implemented in a text-based UI.
