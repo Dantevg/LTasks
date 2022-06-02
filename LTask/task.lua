@@ -64,9 +64,20 @@ local function matchTypes(value, stable, action, conts)
 	-- Order is important
 	local matching = {}
 	for _, cont in ipairs(conts) do
-		-- nil type signifies any type for now
-		if (type(value) == cont.type or cont.type == nil)
-				and (action == cont.action or cont.action == nil) then
+		-- Transform types for use with typed
+		if cont.type == nil then cont.type = "any" end
+		if cont.type == "table" then cont.type = "table<any, any>" end
+		
+		local typeMatches
+		if type(cont.type) == "string" then
+			typeMatches = typed.is(cont.type, value)
+		else
+			typeMatches = cont.type:validate(value)
+		end
+		
+		local actionMatches = (cont.action == nil or action == cont.action)
+		
+		if typeMatches and actionMatches then
 			local next = cont.fn(value, stable)
 			if next ~= nil then table.insert(matching, next) end
 		end
@@ -89,11 +100,14 @@ function task.step(t, conts)
 	return task.new(function(self, options)
 		local matching = {}
 		self.parent = options.parent
-		while #matching == 0 and not t.stable do
+		while #matching == 0 do
 			self.__name = "step (left, "..t.__name..")"
 			if options.showUI then ltuiElements.stepDialog(self, conts, t) end
 			t:resume(options, false, self)
-			matching = matchTypes(t.value, t.stable, options.action, conts)
+			if t.value ~= nil then
+				matching = matchTypes(t.value, t.stable, options.action, conts)
+			end
+			if t.stable then break end
 			if #matching == 0 then self, options = coroutine.yield() end
 		end
 		
@@ -330,6 +344,7 @@ end
 
 task.__band = task.parallelAnd
 task.__bor = task.parallelOr
-task.__concat = task.step
+task.__bxor = task.step
+task.__concat = task.step -- For backwards compatibility, `..` is right-associative
 
 return task

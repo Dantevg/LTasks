@@ -34,16 +34,20 @@ function editor.viewInformation(value, prompt)
 			if options.showUI then showUI() end
 			self, options = coroutine.yield()
 		end
-	end, "viewInformation ("..(prompt and tostring(prompt).." " or "")..tostring(value)..")", value)
+	end, (prompt or "viewInformation").." ("..tostring(value)..")", value)
 end
 
-local function genericEditor(value, showUI, name)
+local function genericEditor(value, showUI, onAction, name)
 	return task.new(function(self, options)
 		self.parent = options.parent
 		self.value = value
 		while true do
 			self.__name = name.." ("..app.pretty(self.value)..")"
-			if options.showUI or options.action then showUI(self, options) end
+			if options.action and onAction then
+				onAction(self, options)
+			elseif options.showUI then
+				showUI(self)
+			end
 			self, options = coroutine.yield()
 		end
 	end, name.." ("..app.pretty(value)..")", value)
@@ -63,7 +67,7 @@ function editor.editString(value, prompt)
 			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
-	end, "editString")
+	end, nil, prompt or "editString")
 end
 
 ---An editor for numbers.
@@ -80,7 +84,7 @@ function editor.editNumber(value, prompt)
 			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
-	end, "editNumber")
+	end, nil, prompt or "editNumber")
 end
 
 ---An editor for a pre-determined set of inputs.
@@ -100,7 +104,7 @@ function editor.editOptions(value, choices, converter, prompt, name)
 			end)
 		app.main:insert(dialog, {centerx = true, centery = true})
 		return dialog
-	end, name or "editOptions")
+	end, nil, prompt or name or "editOptions")
 end
 
 ---An editor for a pre-determined set of inputs.
@@ -108,7 +112,7 @@ end
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editBoolean(value, prompt)
-	return editor.editOptions(value, {"true", "false"}, {true, false}, prompt, "editBoolean")
+	return editor.editOptions(value, {"true", "false"}, {true, false}, prompt, prompt or "editBoolean")
 end
 
 ---An editor for tables.
@@ -120,7 +124,14 @@ function editor.editTable(editors, prompt)
 	for key, ed in pairs(editors) do
 		value[key] = ed.value
 	end
-	return genericEditor(value, function(self, options)
+	return genericEditor(value, function(self)
+		ltuiElements.tableEditor(self, editors or {}, prompt,
+			function(val) self.value = val end,
+			function(name)
+				editors[name] = nil
+				self:show()
+			end)
+	end, function(self, options)
 		if options.action == "add array" then
 			local dialog = ltuiElements.numberEditor(#editors+1, "enter an index",
 				function(key) self:resume {action = "add", key = key} end)
@@ -137,15 +148,8 @@ function editor.editTable(editors, prompt)
 					self:show()
 				end)
 			app.main:insert(dialog, {centerx = true, centery = true})
-		else
-			ltuiElements.tableEditor(self, editors or {}, prompt,
-				function(val) self.value = val end,
-				function(name)
-					editors[name] = nil
-					self:show()
-				end)
 		end
-	end, "editTable")
+	end, prompt or "editTable")
 end
 
 ---An editor for strings, numbers, booleans or tables.

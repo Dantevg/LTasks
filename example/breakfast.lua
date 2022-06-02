@@ -1,5 +1,5 @@
 local task = require "LTask.task"
-local editor = require "LTask.terminalEditor"
+local editor = require "LTask.ltuiEditor"
 
 local makeTea = editor.editBoolean(false, "make tea?")
 	:transformValue(function(x) return x and "Tea" or nil end)
@@ -11,7 +11,7 @@ local eatBreakfast = function(drink, food)
 	return editor.viewInformation("I'm eating "..food.." and drinking "..drink)
 end
 
--- local breakfast = makeTea:parallelOr(makeCoffee)
+-- return task.parallelOr(makeTea, makeCoffee)
 -- 	:parallelAnd(makeSandwich)
 -- 	:step {{fn = function(value)
 -- 		if value[1] ~= nil and value[2] ~= nil then
@@ -19,10 +19,8 @@ end
 -- 		end
 -- 	end}}
 
-local breakfast = ((makeTea | makeCoffee) & makeSandwich) .. {{fn = function(value)
+return ((makeTea | makeCoffee) & makeSandwich) .. {{fn = function(value)
 	if value[1] ~= nil and value[2] ~= nil then
 		return eatBreakfast(value[1], value[2])
 	end
 end}}
-
-return breakfast

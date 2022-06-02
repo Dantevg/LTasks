@@ -3,6 +3,7 @@ local pretty = require "pretty"
 local ltuiElements = require "LTask.ltuiElements"
 local task = require "LTask.task"
 local editor = require "LTask.ltuiEditor"
+local typed = require "typed"
 
 local log = require "ltui.base.log"
 log._LOGFILE = "ltui_log.txt"
@@ -28,6 +29,8 @@ function app:init()
 	self:background_set(self.accent)
 	self:insert(self:maindialog())
 	
+	self.task = require "example.breakfast"
+	
 	-- self.task = editor.editNumber(41, "Enter Information:") .. {{
 	-- 	type = "number",
 	-- 	action = "continue",
@@ -37,16 +40,16 @@ function app:init()
 	-- }}
 	-- self.task = editor.viewInformation("Hello!", "The Information:")
 	
-	self.task = editor.editTable({
-		num = editor.editBoolean(true, "Enter Information:"),
-		editor.editNumber(41, "Enter Number:"),
-	}, "edit a table") .. {
-		{
-			type = "table",
-			action = "continue",
-			fn = function(value) return editor.viewInformation(app.pretty(value)) end
-		}
-	}
+	-- self.task = editor.editTable({
+	-- 	num = editor.editBoolean(true, "Enter Information:"),
+	-- 	editor.editNumber(41, "Enter Number:"),
+	-- }, "edit a table") .. {
+	-- 	{
+	-- 		type = "table<any, any>",
+	-- 		action = "continue",
+	-- 		fn = function(value) return editor.viewInformation(app.pretty(value)) end
+	-- 	}
+	-- }
 	
 	-- local colourEditor = editor.editOptions("green", {"red", "green", "blue"})
 	-- local numberEditor = editor.editNumber(41, "edit number:")
