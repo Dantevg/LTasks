@@ -28,7 +28,7 @@ function app:resultdialog()
 	if not self._RESULTDIALOG then
 		local dialog_result = ltui.textdialog:new(
 			"dialog.result",
-			ltui.rect {0, 0, math.min(80, self:width() - 8), math.min(8, self:height())},
+			ltui.rect {0, 0, math.min(60, self:width() - 8), math.min(8, self:height())},
 			"output dialog"
 		)
 		dialog_result:button_add("close", "< Close >", function() dialog_result:quit() end)
@@ -45,7 +45,7 @@ function app:inputdialog()
 	if not self._INPUTDIALOG then
 		local dialog_input = ltui.inputdialog:new(
 			"dialog.input",
-			ltui.rect {0, 0, math.min(80, self:width() - 8), math.min(8, self:height())},
+			ltui.rect {0, 0, math.min(60, self:width() - 8), math.min(8, self:height())},
 			"input dialog"
 		)
 		dialog_input:background_set(self:maindialog():frame():background())
@@ -70,7 +70,7 @@ function app:choicedialog()
 	if not self._CHOICEDIALOG then
 		local dialog_choice = ltui.choicedialog:new(
 			"dialog.choice",
-			ltui.rect {0, 0, math.min(80, self:width() - 8), math.min(20, self:height())},
+			ltui.rect {0, 0, math.min(60, self:width() - 8), math.min(16, self:height())},
 			"input dialog"
 		)
 		dialog_choice:background_set(self:maindialog():frame():background())
