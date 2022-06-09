@@ -3,9 +3,22 @@
 \subsection{Combinators and operators}
 Combinators are common in functional languages like Clean, where it is possible to define custom operators for them. For instance, the \clean{step} function has an infix operator version, \clean{>>*}.
 
-Lua does not allow defining custom operators, but you can change the behaviour of the pre-existing operators. While custom infix operators make combinators easier to use, they are not a requirement. We can define them as normal Lua functions, like the plain \clean{step} function in iTasks.
+Lua does not allow defining custom operators, but you can change the behaviour of the pre-existing operators. To do this, we define a \lua{task} table and use it not only to define all combinators, but also as a metatable for tasks. For changing the behaviour of, for example, the \lua{&} function, we define the \lua{__band} metamethod in this table. We let all tasks inherit from this prototype table using the \lua{__index} metatable entry, see listing \ref{lst:lua_task_metatable}.
 
-To make them easier to use, we can define a \lua{task} prototype that has all the combinators, and let all tasks inherit from this prototype using the \lua{__index} metatable entry.
+\begin{figure}[ht]
+\centering
+\begin{minted}{lua}
+local task = {}
+task.__index = task
+task.__band = function() --[[ ... ]] end
+
+local myTask = setmetatable({}, task)
+\end{minted}
+\caption{A simplified example showing the basic structure for inheriting the prototype and defining custom operator behaviour.}
+\label{lst:lua_task_metatable}
+\end{figure}
+
+% While custom infix operators make combinators easier to use, they are not a requirement. We can define them as normal Lua functions, like the plain \clean{step} function in iTasks.
 
 \subsection{Parallel}
 If we bring the \clean{parallel} signature from iTasks down to its essence, we get listing \ref{lst:clean_parallel}. It takes a list of tasks, the task it returns has as its value a list of values of the original tasks.
@@ -19,10 +32,12 @@ parallel :: [Task a] -> Task [TaskValue a]
 \label{lst:clean_parallel}
 \end{figure}
 
+Each time the \lua{parallel} coroutine is resumed, it resumes the input tasks one by one and updates its list of task values. Because the resulting task needs to also contain the task values' stability, the value of the \lua{parallel} task is a list of task value--stability pairs.
+
 \subsection{Step}
 The step combinator executes one task and chooses another task to execute with the result of the first task. The result the step combinator is a task that has the value of the selected follow-up task. It is called \textit{step} because when it can execute one of the follow-up tasks, it steps to that task and does not go back anymore.
 
-In iTasks, the step combinator expects a list of \textit{task continuations}. Such a continuation defines a task that should be executed when some event happens. Such an event can be when a task has a stable value or when a task has a value that matches some predicate (\clean{OnValue}). It can also be when the user presses some button like `yes', `no', `ok' or `cancel' (\clean{OnAction}). For the proof of concept, we will initially only consider \clean{OnValue}, and add \clean{OnAction} later on. They are both important for a complete proof-of-concept of TOP. Listing \ref{lst:clean_onvalue_step} shows an example of using multiple \clean{OnValue} continuations, and listing . The step combinator only steps to a continuation if its predicate holds. If we simplify its signature from iTasks, we can get listing \ref{lst:clean_step}.
+In iTasks, the step combinator expects a list of \textit{task continuations}. Such a continuation defines a task that should be executed when some event happens. Such an event can be when a task has a stable value or when a task has a value that matches some predicate (\clean{OnValue}). It can also be when the user presses some button like `yes', `no', `ok' or `cancel' (\clean{OnAction}). For the proof of concept, we will initially only consider \clean{OnValue}, and add \clean{OnAction} later on. They are both important for a complete proof-of-concept of TOP. Listing \ref{lst:clean_onvalue_step} shows an example of using multiple \clean{OnValue} continuations, and listing \ref{lst:lua_onvalue_step} shows the corresponding Lua code. The step combinator only steps to a continuation if its predicate holds. If we simplify its signature from iTasks, we can get listing \ref{lst:clean_step}.
 
 \begin{figure}[ht]
 \centering
@@ -68,22 +83,24 @@ getInput .. {
 \end{figure}
 
 \subsection{Type matching}\label{section-combinators-type-matching}
-The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-task-types}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-editors-lua}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here. The syntax used here is the one from the Typed\footref{footnote-typed} library, which we decided to use in section \ref{section-task-types-luarocks}.
-
-There is a Lua library for matching data structures called Tamale\footnote{\url{https://luarocks.org/modules/luarocks/tamale}}. \dots\todo{expand}
+The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-type-representation}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-editors-lua}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here. The syntax used here is hypothetical.
 
 \subsubsection{Best match or first match}
 When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. This possibility of having multiple continuations that match is also present in iTasks, where the first match is used. Actually, in iTasks all continuations need to accept exactly the same type so it is not possible to find a ``best'' match. This limitation is not there in dynamically typed languages like Lua.
 
-We can define a \textit{better} match to be a more \textit{specific} one: \lua{"number"} is more specific than \lua{"string | number"}, because the first one does not accept stings. \lua{"table<string, number>"} is more specific than just \lua{"table"}, and a schema \lua{typed.Schema("person"):field("id", "number"):field("age", "number")} is even more specific than both of these.
+We can define a \textit{better} match to be a more \textit{specific} one: \lua{number} is more specific than \lua{string | number}, because the first one does not accept strings. \lua{table<string, number>} (a table with \lua{string} keys and \lua{number} values) is more specific than just \lua{table}, and a table \lua{{id: number, age: number}} is even more specific than both of these.\todo{TODO: transitivity}
 
 \subsubsection{Matching lists: types and order}
-A list in Lua can contain values of differing types at once. What happens if the actual list contains the right types but in the wrong order? The Typed library does not have functionality to define types for specific array indices, only for the entire array. Typescript calls this \textit{tuple types}\footnote{\label{footnote-typescript-tuple-types}\url{https://www.typescriptlang.org/docs/handbook/2/objects.html#tuple-types}} and they are in the TO-DO section of the library\footnote{\url{https://github.com/SovietKitsune/typed#todo}}.
+A list in Lua can contain values of differing types at once. What happens if the actual list contains the right types but in a different order than asked for?
+% If we would allow changing the order of the types in a list, a continuation function expecting a string and a number could receive a number and a string instead.
+This goes wrong if the position of elements in the list has meaning. An example of this is a continuation accepting a date as a table of \lua{{number, string, number}} (year, month, day). When it receives a \lua{{number, number, string}} instead, it can not know which number is the day and which is the year.
 
-If we would allow changing the order of the types in an array, a continuation function expecting a string and a number could receive a number and a string instead. This can be done using an array of two types instead, but the Typed library does not support arrays of multiple types (both \lua{"TypedArray<number | string>"} and \lua{"(number | string)[]"} are not valid types).
+The Typed library does not have functionality to define types for specific list indices, only for the entire list. Typescript calls this tuple types\footnote{\label{footnote-typescript-tuple-types}\url{https://www.typescriptlang.org/docs/handbook/2/objects.html#tuple-types}}.
 
 \subsubsection{Matching lists: length}
-If the continuation specifies a list length and if the actual list is longer than this length, does it still match? The Typed library also does not have functionality for specifying array length, but the decision is important if we would be able to specify the length (when not using Typed). List elements may have semantics, so if we choose to match a list that is longer than needed, we may discard important information. This can happen for example when we have a 3D vector that is represented as a list of its coordinates. If we have two continuations, one for 2D vectors and one for 3D vectors, we should not choose the 2D vector continuation. To prevent situations like this, we should not match lists with differing length. Typescript works around the issue in this example by providing tuple types\footref{footnote-typescript-tuple-types}.
+If the continuation specifies a list length and if the actual list is longer than this length, does it still match? List elements may have semantics, so if we choose to match a list that is longer than needed, we may discard important information. This can happen for example when we have a 3D vector that is represented as a list of its coordinates. If we have two continuations, one for 2D vectors and one for 3D vectors, we should not choose the 2D vector continuation. To prevent situations like this, we should not match lists with differing length.
+
+Typescript works around the issue in this example by providing tuple types\footref{footnote-typescript-tuple-types}. The Typed library does not have tuple types or functionality for specifying list length.
 
 \subsubsection{Matching tables}
 Analogous to list length: when a table has more fields than required, does it match? The same 2D/3D vector example applies here, but with tables containing the fields \lua{x}, \lua{y} and \lua{z}.

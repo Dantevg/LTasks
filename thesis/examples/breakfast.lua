@@ -11,8 +11,10 @@ local eatBreakfast = function(drink, food)
     return editor.viewInformation("I'm eating "..food.." and drinking "..drink)
 end
 
-return ((makeTea | makeCoffee) & makeSandwich) .. {{fn = function(value)
+local function maybeEatBreakfast(value)
     if value[1] ~= nil and value[2] ~= nil then
         return eatBreakfast(value[1], value[2])
     end
-end}}
+end
+
+return ((makeTea | makeCoffee) & makeSandwich) .. {{fn = maybeEatBreakfast}}

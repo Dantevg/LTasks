@@ -11,7 +11,7 @@ Lor\footnote{\url{https://luarocks.org/modules/sumory/lor}},
 Sailor\footnote{\url{https://github.com/sailorproject/sailor}} or
 Pegasus\footnote{\url{https://luarocks.org/modules/evandrolg/pegasus}}.
 
-We will not be going this way, because while it may be the most user-friendly option and cross-platform, it costs the most amount of work to make and other options are usable enough for a proof of concept.
+We will not be going this way, because while it may be the most user-friendly option and cross-platform, we estimate that the amount of work exceeds the scope of this proof-of-concept project and other options are usable enough for a proof of concept.
 
 \subsection{Native application}
 A native application looks about the same as a HTML page, but the difference is that interaction does not go via Javascript but via an API written in C. Lua native UI libraries:
@@ -23,7 +23,7 @@ lui\footnote{\url{https://tset.de/lui/index.html}},
 lui\footnote{\url{https://github.com/zhaozg/lui}},
 wxLua\footnote{\url{https://github.com/pkulchenko/wxlua}}.
 
-A native application has about the same usability as a webpage and costs a bit less effort than one. For this proof of concept we will use a more simple form of user interface.
+A native application has about the same usability as a webpage. Due to the fact that Lua is built to interoperate with C, it is easier to build a native application than a webpage. For this proof of concept, though, we will use a more simple form of user interface.
 
 \subsection{Terminal text-based UI}
 The third way of displaying tasks somewhat graphically is by using a terminal emulator. There are a couple libraries for this:

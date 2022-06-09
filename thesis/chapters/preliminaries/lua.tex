@@ -229,5 +229,12 @@ print(result) --> 42
 \label{lst:lua_coroutines}
 \end{figure}
 
+\subsection{Comparison to Clean}
+There are some important differences between Lua and Clean. The most important one is the fact that Clean is a functional language and Lua is procedural. Like in Clean, functions in Lua are first-class. Unlike Clean, they can have side-effects and they can give a differing output for equal inputs.
+
+Clean does not have coroutines. As we will see later (section \ref{section-task-values}), they turn out to be a very useful feature.
+
+Another important difference is that Clean is statically typed and compiled while Lua is dynamically typed and interpreted. Statically typed languages provide a higher level of correctness, but interpreted languages allow for faster prototyping. Another consequence of Lua being dynamically typed is that its type information is not precise: all tables have type \lua{table}, regardless of their contents.
+
 % http://www.mcours.net/cours/pdf/hasclic2/hassclic117.pdf
 % http://www.lua.org/doc/jucs04.pdf
