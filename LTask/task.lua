@@ -79,7 +79,7 @@ local function matchTypes(value, stable, action, conts)
 		
 		if typeMatches and actionMatches then
 			local next = cont.fn(value, stable)
-			if next ~= nil then table.insert(matching, next) end
+			if next then table.insert(matching, next) end
 		end
 	end
 	return matching

@@ -23,7 +23,7 @@ local editor = {}
 function editor.viewInformation(value, prompt)
 	local function showUI()
 		app.main:insert(
-			ltuiElements.stringView(value, prompt),
+			ltuiElements.stringView(app.pretty(value), prompt),
 			{centerx = true, centery = true}
 		)
 	end
