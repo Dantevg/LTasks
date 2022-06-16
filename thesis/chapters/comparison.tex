@@ -34,7 +34,8 @@ There is a bit more difference in making editors than the basic combinators. iTa
 \centering
 \begin{minted}{clean}
 makeTea = updateInformation [] False <<@ Hint "Make tea?"
-    @! (\x -> if (x == True) (?Just "Tea") ?None)
+        @ (\x -> if x (?Just "Tea") ?None)
+        @? tvFromMaybe
 \end{minted}
 \caption{In iTasks}
 \label{lst:comparison_editors_clean}
@@ -54,15 +55,15 @@ local makeTea = editor.editBoolean(false, "make tea?")
 \end{figure}
 
 \subsection{Helper function}
-The wrapping of the actual value in a \clean{TaskValue} and a maybe type is harder to work with. Listing \ref{lst:comparison_maybe} shows the helper functions that are needed to create a \lua{viewInformation} task only if a food and drink are chosen. These functions are needed due to the fact that this is a contrived example.
+The wrapping of the actual value in a \clean{TaskValue} and a maybe type is harder to work with, we need to use pattern matching. Listing \ref{lst:comparison_maybe} shows the helper functions that are needed to create a \lua{viewInformation} task only if a food and drink are chosen. These functions are needed due to the fact that this is a contrived example.
 
 \begin{figure}[ht]
 \begin{subfigure}{\textwidth}
 \centering
+% maybeEatBreakfast :: (TaskValue (String, String)) -> ? (Task String)
 \begin{minted}{clean}
-maybeEatBreakfast :: TaskValue ((? String) (? String)) -> (? (Task String))
-maybeEatBreakfast (Value ((?Just drink) (?Just food)) _) = ?Just (eatBreakfast drink food)
-maybeEatBreakfast NoValue = ?None
+maybeEatBreakfast (Value (drink, food) _) = ?Just (eatBreakfast drink food)
+maybeEatBreakfast _ = ?None
 \end{minted}
 \caption{In iTasks}
 \label{lst:comparison_maybe_clean}
@@ -84,20 +85,20 @@ end
 \label{lst:comparison_maybe}
 \end{figure}
 
-\todo{correct iTasks example}
-
 \subsection{User interface}
-\dots
+The user interface for LTasks (shown in figure \ref{fig:comparison_ltask_ui}) is made to serve two purposes: to be the bare minimum for a TOP proof-of-concept, and to make clear that the behaviour is correct for TOP. For that reason, it looks very different to the iTasks UI.
 
-\begin{figure}[ht]
+Let us set aside the differences in visual display for now (LTasks uses a textual UI while iTasks uses a webpage). The textual UI of LTasks shows the structure of the task at the top. This is not only useful for seeing that the structure is indeed correct, but also for keeping a mental image of where you are navigated to. This is not necessary in iTasks because it shows everything at once instead of entering sub-menus (fig. \ref{fig:comparison_itask_ui}). iTasks hides the way in which \lua{makeTea} and \lua{makeCoffee} are composed with \lua{makeSandwich}, while the LTasks UI makes this more explicit.
+
+\begin{figure}
 \centering
-\begin{subfigure}{\textwidth}
+\begin{subfigure}{0.8\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/screenshot-ltasks-breakfast.png}
     \caption{The UI showing that \lua{makeTea} is \lua{true} and that \lua{makeCoffee} and \lua{makeSandwich} (selected) are both \lua{false}.}
     \label{fig:comparison_ltask_ui_1}
 \end{subfigure}
-\begin{subfigure}{\textwidth}
+\begin{subfigure}{0.8\textwidth}
     \centering
     \bigskip
     \includegraphics[width=\textwidth]{img/screenshot-ltasks-breakfast-view.png}
@@ -105,5 +106,24 @@ end
     \label{fig:comparison_ltask_ui_2}
 \end{subfigure}
 \caption{The textual UI of LTasks.}
-\label{lst:comparison_ltask_ui}
+\label{fig:comparison_ltask_ui}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{subfigure}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast.png}
+    \caption{The UI showing all input fields at once.}
+    \label{fig:comparison_itask_ui_1}
+\end{subfigure}
+\hspace{0.05\textwidth}
+\begin{subfigure}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast-view.png}
+    \caption{The UI showing the output after selecting \lua{true} for \lua{makeSandwich}.}
+    \label{fig:comparison_itask_ui_2}
+\end{subfigure}
+\caption{The graphical web UI of iTasks.}
+\label{fig:comparison_itask_ui}
 \end{figure}

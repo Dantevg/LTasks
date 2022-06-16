@@ -1,24 +1,30 @@
 \chapter{Introduction}\label{introduction}
-The introduction of your bachelor thesis introduces the research area, the
-research hypothesis, and the scientific contributions of your work.
-A good narrative structure is the one suggested by Simon Peyton Jones
-\cite{peys04:HowToWriteAGoodResearchPaper}:
-%
-\begin{itemize}
-\item describe the problem / research question
-\item motivate why this problem must be solved
-\item demonstrate that a (new) solution is needed
-\item explain the intuition behind your solution
-\item motivate why / how your solution solves the problem (this is technical)
-\item explain how it compares with related work
-\end{itemize}
-%
-Close the introduction with a paragraph in which the content of the next chapters
-is briefly mentioned (one sentence per chapter). 
+% The introduction of your bachelor thesis introduces the research area, the
+% research hypothesis, and the scientific contributions of your work.
+% A good narrative structure is the one suggested by Simon Peyton Jones
+% \cite{peys04:HowToWriteAGoodResearchPaper}:
+% %
+% \begin{itemize}
+% \item describe the problem / research question
+% \item motivate why this problem must be solved
+% \item demonstrate that a (new) solution is needed
+% \item explain the intuition behind your solution
+% \item motivate why / how your solution solves the problem (this is technical)
+% \item explain how it compares with related work
+% \end{itemize}
+% %
+% Close the introduction with a paragraph in which the content of the next chapters
+% is briefly mentioned (one sentence per chapter). 
 
-\bigskip\noindent
-What this thesis does:
-\begin{itemize}
-    \item Explore the design space of TOP in an imperative language like Lua.
-    \item Create a proof of concept implementation of TOP in Lua.
-\end{itemize}
+Task Oriented Programming (TOP) is a programming paradigm where code is structured using tasks. Currently, the only implementations of it are written as an embedded DSL in the functional language Clean, and the entire concept of TOP is designed around the language. This is a problem, because \dots
+
+In this thesis we break the concept of TOP away from its functional implementation by asking the question \textit{``How can we develop a task oriented programming implementation in a procedural language?''}
+By placing TOP in an environment that is radically different than Clean, we can see what interesting design decisions appear that are simply not applicable to Clean.
+
+We first go over the preliminary knowledge in chapter \ref{preliminaries}. In chapter \ref{research} we explore the design space of implementing TOP in a procedural language like Lua. With that information, we create a proof-of-concept implementation called LTasks. To show that this implementation is indeed a correct implementation of TOP, we compare it to iTasks in chapter \ref{comparison}. Chapter \ref{relatedwork} lists the related work, and we conclude the thesis in chapter \ref{conclusions}. Lastly, appendix \ref{appendix} contains code examples in both LTasks and iTasks.
+
+% What this thesis does:
+% \begin{itemize}
+%     \item Explore the design space of TOP in a procedural language like Lua.
+%     \item Create a proof of concept implementation of TOP in Lua.
+% \end{itemize}

@@ -1,9 +1,14 @@
 \chapter{Conclusions}\label{conclusions}
-In this chapter you present all conclusions that can be drawn from the
-preceding chapters.
-It should not introduce new experiments, theories, investigations, etc.:
-these should have been written down earlier in the thesis.
-Therefore, conclusions can be brief and to the point.
+% In this chapter you present all conclusions that can be drawn from the
+% preceding chapters.
+% It should not introduce new experiments, theories, investigations, etc.:
+% these should have been written down earlier in the thesis.
+% Therefore, conclusions can be brief and to the point.
+
+In this thesis we explored the design decisions that come up when implementing TOP in a procedural language, and we have written a proof-of-concept TOP implementation called LTasks.
+
+There are two major differences between Clean and Lua: Clean is statically typed while Lua is dynamically typed, and Lua has coroutines which Clean does not have. \dots
 
 \section{Future work}
 A better way of representing types so that more Lua features can be used. Since the main goal of using types here is not to check the correctness of a program but to use them for augumenting the features Lua provides, the ``type system'' should not aim for soundness but rather for completeness.
+Related to this, a more complete type specificity algorithm.

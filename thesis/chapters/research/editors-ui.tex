@@ -1,5 +1,5 @@
 \section{Editors and user interface}\label{section-editors-ui}
-There are many different ways of interfacing with users. iTasks uses a webpage for instance. But there are other graphical interfaces, as well as non-graphical ones. They all differ in usability for the user and ease of programming. We explored a JSON-based interface in section \ref{section-editors-lua}, which would be an especially non-user-friendly user interface.
+There are many different ways of interfacing with users. iTasks uses a webpage for instance. But there are other graphical interfaces, as well as non-graphical ones. They all differ in usability for the user and ease of programming. We explored a JSON-based interface in section \ref{section-types-json}, which would be an especially non-user-friendly user interface.
 
 \subsection{HTML page}
 There is one well-known Lua library for and for interacting with the DOM through Javascript: Fengari\footnote{\url{https://fengari.io/}}. Fengari implements a Lua VM, so Lua code runs in the browser. We can also generate HTML using h5tk\footnote{\url{https://luarocks.org/modules/forflo/h5tk}} and serve it using
@@ -36,3 +36,6 @@ For this thesis I chose to work with ltui. It is quite hard to start working wit
 
 \subsection{Terminal command-line}
 Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this will be the initial interface of the proof of concept. Some features are too advanced for such a simple interface, they will only be implemented in a text-based UI.
+
+\subsection{Tables in editors}
+Tables can be visually represented as a sequence of key-value pairs, with a ``$+$'' button for adding a new pair and a ``$-$'' button for removing a pair. A value without key acts as an array entry. These entries implicitly get a numeric key, just like in Lua. They can be displayed one after the other, without keys displayed. Tables that contain tables can be represented in two ways: either by a single element that, when clicked, navigates to the inner table entirely (like entering a directory in a file explorer), or by a collapsible indented list (like the sidebar in a file explorer). They both provide the same functionality, which one to choose comes down to preference or implementation details.

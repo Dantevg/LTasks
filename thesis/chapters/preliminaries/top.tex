@@ -1,38 +1,30 @@
 \section{Task Oriented Programming}\label{section-top}
 
-\textit{Task Oriented Programming} (TOP) is a programming paradigm used for developing interactive distributed applications with a high level of abstraction \cite{plasmeijer2012task}. TOP is centered around the concept of \textit{tasks}. A task in TOP is just like a task in the real world: a description of something that needs to be done, an abstract unit of work. A task can have an observable intermediate value and access to shared information. Some tasks are to be performed by a human and some can be done by a computer. By composing tasks in various ways, it is possible to create complex applications.
+\textit{Task Oriented Programming} (TOP) is a programming paradigm centered around the concept of \textit{tasks} \cite{plasmeijer2012task}.
+A task in TOP is just like a task in the real world: a description of something that needs to be done, an abstract unit of work. A task can have an observable intermediate value and access to shared information. Some tasks are to be performed by a human and some can be done by a computer. By composing tasks in various ways, it is possible to create complex applications.
+
+There are two implementations of TOP: iTask \cite{plasmeijer2007itasks}, written in the functional language Clean, is used for developing interactive distributed applications. mTask \cite{koopman2018task, lubbers2019multitasking}, written in Clean and C++, is used for IoT devices which are constrained in their resource usage. Both of them are a shallowly-embedded domain-specific language (EDSL). In this thesis we will primarily be comparing against iTasks.
+
+A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and some form of user interface.
 % When a task is in progress, its value can already be observed.
 % They vary from simply displaying text to running an entire application.
 % The underlying technical details are taken care of automatically by the TOP framework.
 
-\subsection{Comparison to other paradigms}
-In procedural programming, you structure your code using \textit{procedures}. In object oriented programming you use \textit{objects}, and in functional programming you use \textit{functions}. Analogously, with task oriented programming you use \textit{tasks} to structure your code.
+% \subsection{Comparison to other paradigms}
+% In procedural programming, you structure your code using \textit{procedures}. In object oriented programming you use \textit{objects}, and in functional programming you use \textit{functions}. Analogously, with task oriented programming you use \textit{tasks} to structure your code.
 
-In imperative programming, you tell the computer \textit{how to do} a computation. In functional programming, you tell it \textit{what needs to be done}. In task oriented programming, you tell it \textit{what the result needs to be} or \textit{how information relates to each other}.
+% In imperative programming, you tell the computer \textit{how to do} a computation. In functional programming, you tell it \textit{what needs to be done}. In task oriented programming, you tell it \textit{what the result needs to be} or \textit{how information relates to each other}.
 
-\subsection{TOP implementations}
-At the moment, there are two implementations of TOP: iTasks in the functional language Clean, and mTasks in Clean and C++. The latter one is designed for IoT devices which are constrained in their resource usage. Both of them are a shallowly-embedded domain-specific language (EDSL). In this thesis we will primarily be comparing against iTasks.
+% \subsection{TOP implementations}
+% At the moment, there are two implementations of TOP: iTasks in the functional language Clean, and mTasks in Clean and C++. The latter one is designed for IoT devices which are constrained in their resource usage. Both of them are a shallowly-embedded domain-specific language (EDSL). In this thesis we will primarily be comparing against iTasks.
 
-A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and some form of user interface.
+% A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and some form of user interface.
 
 % \newpage
 \subsection{Task value}\label{section-top-task-value}
 Tasks can have an \textit{intermediate value}. A task value can be in one of three states: \textbf{no value}, \textbf{unstable} value or \textbf{stable} value \cite[\S 4.3]{achten2013introduction}. A task can switch between no value and an unstable value, and it can switch to a stable value. Tasks with a stable value have a final result and do not change anymore. Even when a task has no stable value yet, its intermediate value can be observed. Figure \ref{fig:task_states} shows this graphically. Tasks can observe the value of other tasks.
 
 In iTasks, tasks can also throw \textit{exceptions}, implemented as returning an exception value \cite[\S 3.1.1]{plasmeijer2012task}. When it is clear that a task will never result in a meaningful value, it can raise an exception. This can happen for instance when a network connection fails.
-
-The task function in iTasks returns the new version of a task, along with the value, any user interface changes, and other values we will not get into here. The task value is modelled as an algebraic data type; it is either \textit{no value}, or a value together with a boolean signifying whether it is stable. Listing \ref{lst:clean_task_value} shows the type definition in Clean.
-
-\begin{figure}[ht]
-    \centering
-    \begin{minted}{clean}
-    :: TaskValue a
-        = NoValue
-        | Value !a !Stability
-    \end{minted}
-    \caption{The definition of \clean{TaskValue} in Clean. Note that a task with no value also has no stability.}
-    \label{lst:clean_task_value}
-\end{figure}
 
 \begin{figure}
     \centering
@@ -51,7 +43,12 @@ The task function in iTasks returns the new version of a task, along with the va
 \end{figure}
 
 \subsection{Task composition}\label{section-top-composition}
-Tasks can be \textit{composed} in multiple ways, falling in one of these categories: \textbf{sequential} composition and \textbf{parallel} composition. With sequential composition (named \texttt{step} in iTasks), first task 1 is started before starting task 2 with the value of task 1. In parallel composition, both tasks 1 and 2 need to be done, or either task 1 or 2. There is a way to create tasks with a stable value, called \texttt{return} in iTasks. The value and type of a task can be transformed with iTasks' \texttt{@} operator.
+Tasks can be \textit{composed} in multiple ways, falling in one of these categories: \textbf{sequential} composition and \textbf{parallel} composition. They both use the fact that a task's value can be observed.
+Sequential composition is named \texttt{step} in iTasks. We can provide it with multiple continuation tasks, one of which will be executed based on the observed task value.
+Parallel composition executes all provided tasks. The values of these tasks are combined to form the value of the parallel task, and these values can also be observed by the provided tasks.
+There is a way to create tasks with a stable value, called \texttt{return} in iTasks. The value and type of a task can be transformed with iTasks' \texttt{@} operator.
+
+% With sequential composition (named \texttt{step} in iTasks), first task 1 is started before starting task 2 with the value of task 1. In parallel composition, both tasks 1 and 2 need to be done, or either task 1 or 2.
 
 We will use the example of having breakfast, adapted from Naus \cite{naus2020assisting}. To make breakfast, you first make something to drink. This can be either tea or coffee. You also make something to eat, a sandwich in this example. You can do that already while you are waiting for your drink to be ready. When you have your drink and your sandwich, you can eat it. The whole operation of having breakfast can be seen and modelled as a task, composed of smaller tasks.
 
@@ -79,18 +76,19 @@ A task composed sequentially does not have to wait for the first task to complet
 
 \medskip
 \begin{minted}{clean}
-hospitalBeds >>* [OnValue (ifValue hasAvailableBed
-    (\beds=:[bed:_] -> ?Just (return bed))]
+hospitalBeds >>* [OnValue (ifValue (\beds = length beds > 0)
+    (\beds = return (hd beds)))]
 \end{minted}
-\todo{check this, probably some syntax errors}
+\todo{double-check this in clean ide}
 
 Or think of a task that waits for a specific time. Task 1 (a task that yields the current time) will always have an unstable value (because time keeps changing), but eventually the waiting task becomes stable.
 
 \subsection{Shared data sources}\label{section-top-sds}
 Tasks are \textit{distributed} and \textit{concurrent}. For instance, in a multi-user system, two tasks that are composed in parallel could be done by two different users at the same time. Note that a TOP implementation does not have to be a multi-user system. While iTasks is multi-user, mTasks is not (because having users makes little sense in an IoT environment).
 
-Sharing data between tasks is done with shared data sources like files, sensors or humans. These can interact with tasks. Not all shared data sources have to be both readable and writable; the current date and time are examples of read-only shared data sources.
-When two tasks are composed in parallel, they get a read-only shared data source that reflects the current value of each other \cite[\S 2.1]{plasmeijer2012task}. The following is an example of a SDS that is both readable and writable, letting the user input two numbers and showing their sum immediately.
+Sharing data between tasks is done with shared data sources like files or sensors. These can interact with tasks. Not all shared data sources have to be both readable and writable; the current date and time are examples of read-only shared data sources.
+When tasks are composed in parallel, they get a read-only shared data source that reflects the current value of each other \cite[\S 2.1]{plasmeijer2012task}. The following is an example of a SDS that is both readable and writable, letting the user input two numbers and showing their sum immediately.\todo{reference?}
+% \footnote{Example taken from the slides of the \textit{Advanced Programming} master course.}
 
 \medskip
 \begin{minted}{clean}
@@ -109,3 +107,32 @@ A TOP framework automatically generates an appropriate user interface with these
 An editor task never has a stable value. When an editor task is composed sequentially, even when the user has pressed a ``continue'' button and the sequential task has moved on to the next task, the editor stays unstable behind the scenes.
 
 User interfaces of combined tasks are composed of the user interfaces of the components. For example in iTasks, if two tasks assigned to the same user are combined in parallel, they are shown next to each other. \cite[\S 4.2.4]{naus2020assisting}
+
+Since iTasks is written in the statically typed language Clean, a task can only have a predetermined set of values---true/false, numbers, dates, choices, etc. This allows us to make use of the existing HTML form input fields when generating a web interface. This is useful for two reasons. First, these form fields only allow valid input, i.e. you can't input arbitrary text in a number field. Second, they improve usability by adapting the input method, for instance displaying a date picker.
+
+This generation of different HTML form fields is done automatically in iTasks. This is possible because in a statically typed language the types are available statically, before any value is present.
+
+\subsection{Implementation in iTasks}
+Since iTasks is written in the functional language Clean, tasks are modelled as functions. Functions in Clean are pure; they cannot mutate existing values. Instead, a task is implemented as a function that can process an event, using the information stored in the \clean{IWorld} environment, and that results in a new version of itself, the task value, any user interface changes, and the \clean{IWorld}.
+In listing \ref{lst:clean_task_taskresult_types} we can see that the task function (\clean{Task}) returns a \clean{TaskResult} and an \clean{IWorld}. \clean{IWorld} carries information about the entire TOP application such as the current clock, and we will not go into it further.
+
+A task value is either \clean{NoValue}, or \clean{Value} together with a boolean \clean{Stability} signifying whether it is stable. Note that this models the three possible states from \ref{section-top-task-value} correctly: a task with no value also has no stability.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minted}{clean}
+    :: Task a (=: Task` (Event -> TaskEvalOpts -> *IWorld
+            -> *(TaskResult a, *IWorld)))
+    
+    :: TaskResult a
+        = ValueResult !(TaskValue a) !TaskEvalInfo !UIChange !(Task a)
+        | ExceptionResult !TaskException
+        | DestroyedResult
+    
+    :: TaskValue a
+        = NoValue
+        | Value !a !Stability
+    \end{minted}
+    \caption{The types \clean{Task}, \clean{TaskResult} and \clean{TaskValue} in Clean.}
+    \label{lst:clean_task_taskresult_types}
+\end{figure}

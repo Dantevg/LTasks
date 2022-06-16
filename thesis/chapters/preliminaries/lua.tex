@@ -24,7 +24,7 @@ The next subsections will cover the aspects and concepts of Lua that are most re
 \end{figure}
 
 \subsection{Where is Lua used?}
-Lua is described by the authors as an extensible extension language\cite{ierusalimschy1996lua}. This means that it is made to be extended (for instance with bindings to libraries written in C), and to be used within other applications.
+Lua is described by the authors as an extensible extension language \cite{ierusalimschy1996lua}. This means that it is made to be extended (for instance with bindings to libraries written in C), and to be used within other applications.
 
 Lua is used for example as a language for making games (Roblox\footnote{\url{https://www.roblox.com/}}\textsuperscript{,}\footnote{\url{https://luau-lang.org/}}, Love2D\footnote{\url{https://love2d.org/}}), as a scripting language within games (Minecraft mods\footnote{\url{https://computercraft.cc/}}\textsuperscript{,}\footnote{\url{https://oc.cil.li/}}), as a scripting language in other programs (Adobe Photoshop Lightroom\footnote{\url{https://www.adobe.com/products/photoshop-lightroom.html}}, LuaTeX\footnote{\url{http://www.luatex.org/}}, OpenResty\footnote{\url{https://openresty.org/en/}}) and also in microcontrollers for IoT projects (NodeMCU\footnote{\url{https://nodemcu.readthedocs.io/en/release/}}).
 
@@ -72,9 +72,9 @@ In Lua, functions are first-class values. In fact, the function definition state
 
 Functions can return multiple values at once. For example in the standard library, \lua{coroutine.resume()} (see \ref{section-lua-coroutines}) returns a success status, followed by the result values. Returning multiple values is done like this: \lua{return 10, 20}. On assignment, any extra values are ignored, e.g. \lua{result = coroutine.resume(co)} ignores anything after the first return value. Extra values are also ignored if the function call is wrapped in parentheses, or when it is followed by another expression. That means \lua{y} will be \lua{nil} here: \lua{x, y = (coroutine.resume(co))} and here: \lua{x, y = coroutine.resume(co), nil}.
 
-Functions are also closures: they have access to the local variables of an enclosing function An example of this can be seen in listing \ref{lst:lua_vararg}.
+Functions are also closures: they have access to the local variables of an enclosing function. An example of this can be seen in listing \ref{lst:lua_vararg}.
 
-Functions can also take a variable number of arguments, using a vararg expression. Adding \lua{...} to the end of a function's signature turns it into a vararg function, and you can then use \lua{...} anywhere directly inside the function to represent the extra arguments passed to the function. \lua{...} is not a first-class citizen, though: it is not possible to use it inside an inner function. To get around that, it is common to put the vararg in a table. A useful function from the standard library is \lua{select(index, ...)}\footnote{\url{https://www.lua.org/manual/5.4/manual.html#pdf-select}}, which is a vararg function itself. It has two uses: when \texttt{index} is the string \lua{"#"}, it returns the number of arguments. When it is a number, it returns all arguments after that index.
+Functions can also take a variable number of arguments, using a vararg expression. Adding \lua{...} to the end of a function's signature turns it into a vararg function, and you can then use \lua{...} anywhere directly inside the function to represent the extra arguments passed to the function. \lua{...} is not a first-class citizen, though: it is not possible to use it inside an inner function. To get around that, it is common to put the vararg in a table. A useful function from the standard library is \lua{select(index, ...)}\footnote{\url{https://www.lua.org/manual/5.4/manual.html\#pdf-select}}, which is a vararg function itself. It has two uses: when \texttt{index} is the string \lua{"#"}, it returns the number of arguments. When it is a number, it returns all arguments after that index.
 
 \begin{figure}[ht]
 \centering
@@ -125,7 +125,7 @@ picked = picker(1, 4, 2)
 \subsection{Metatables}
 A metatable is a normal table assigned to a value as metadata. It can be used to override default behaviour like operators, indexing and calling. Primitive types have a metatable for the entire type, but tables have individual metatables. The metatable set on strings for instance enables shorter OOP-like syntax, \lua{("hello"):upper():reverse()} being shorthand for \lua{string.reverse(string.upper("hello"))}.
 
-In example \ref{lst:lua_metatables_operators}, the metatable containing \lua{__add} and \lua{__tostring} is set as the metatable for the table with \texttt{x} and \texttt{y}. When we do \lua{vec + vec}, Lua looks in the metatable and executes the \lua{__add} function. Similarly when we print the result, the \lua{__tostring} function is executed. In this way, all operators\footnote{\url{https://www.lua.org/manual/5.4/manual.html#2.4}} can be overridden.
+In example \ref{lst:lua_metatables_operators}, the metatable containing \lua{__add} and \lua{__tostring} is set as the metatable for the table with \texttt{x} and \texttt{y}. When we do \lua{vec + vec}, Lua looks in the metatable and executes the \lua{__add} function. Similarly when we print the result, the \lua{__tostring} function is executed. In this way, all operators\footnote{\url{https://www.lua.org/manual/5.4/manual.html\#2.4}} can be overridden.
 
 \begin{figure}[ht]
 \centering
@@ -229,12 +229,12 @@ print(result) --> 42
 \label{lst:lua_coroutines}
 \end{figure}
 
-\subsection{Comparison to Clean}
-There are some important differences between Lua and Clean. The most important one is the fact that Clean is a functional language and Lua is procedural. Like in Clean, functions in Lua are first-class. Unlike Clean, they can have side-effects and they can give a differing output for equal inputs.
+\subsection{Comparison between Clean and Lua for TOP}
+There are some important differences between Lua and Clean. The most important one is the fact that Clean is a functional language and Lua is procedural. Like in Clean, functions in Lua are first-class. Unlike Clean, they can have side-effects and they can give a different output for equal inputs.
 
-Clean does not have coroutines. As we will see later (section \ref{section-task-values}), they turn out to be a very useful feature.
+Clean does not have coroutines and uses functions to model tasks. In this thesis we show how we can use coroutines to model tasks (section \ref{section-task-values}).
 
-Another important difference is that Clean is statically typed and compiled while Lua is dynamically typed and interpreted. Statically typed languages provide a higher level of correctness, but interpreted languages allow for faster prototyping. Another consequence of Lua being dynamically typed is that its type information is not precise: all tables have type \lua{table}, regardless of their contents.
+Another important difference is that Clean is statically typed and compiled while Lua is dynamically typed and interpreted. Statically typed languages provide a higher level of correctness, but interpreted languages allow for faster prototyping. Type information in Lua, like most dynamically typed languages, is not precise: all tables have type \lua{table}, regardless of their contents.
 
 % http://www.mcours.net/cours/pdf/hasclic2/hassclic117.pdf
 % http://www.lua.org/doc/jucs04.pdf

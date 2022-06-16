@@ -3,14 +3,17 @@ local editor = require "LTask.ltuiEditor"
 local typed = require "typed"
 local app = require "LTask.ltuiApp"
 
-local months = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
+local months = {"jan", "feb", "mar", "apr", "may", "jun",
+    "jul", "aug", "sep", "oct", "nov", "dec"}
 
 local validMonths = {}
 for i, m in ipairs(months) do validMonths[m] = i end
 
 local function stringToDate(str)
     local year, month, day = str:match("(%d+)-(%d+)-(%d+)")
-    if not tonumber(year) or not tonumber(month) or not tonumber(day) then return nil end
+    if not tonumber(year) or not tonumber(month) or not tonumber(day) then
+        return nil
+    end
     return {
         year = tonumber(year),
         month = tonumber(month),
@@ -39,27 +42,3 @@ return task.anyTask {dateString, dateTableNumeric, dateTableNamedMonth} ~ {
             if date then return task.constant(date) end
         end
     },
-    {
-        type = typed.Schema("DateTableNumeric")
-            :field("year", "number")
-            :field("month", "number")
-            :field("day", "number"),
-        action = "continue",
-        fn = function(date)
-            return task.constant(date)
-        end
-    },
-    {
-        type = typed.Schema("DateTableNamed")
-            :field("year", "number")
-            :field("month", "string")
-            :field("day", "number"),
-        action = "continue",
-        fn = function(date)
-            date.month = validMonths[date.month]
-            return task.constant(date)
-        end
-    },
-} ~ {{fn = function(date)
-    return editor.viewInformation(app.pretty(date))
-end}}

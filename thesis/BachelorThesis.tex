@@ -11,11 +11,14 @@
 \usepackage{tikz}
 \usetikzlibrary{automata, positioning, arrows.meta}
 \usepackage{minted}
-\setminted{fontsize=\footnotesize}
+\setminted{fontsize=\footnotesize, autogobble, breaklines=true}
 \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}
 \renewcommand{\figurename}{Listing}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\hypersetup{pdfborder={0 0 0}} % for not showing boxes around links
 \newcommand{\lua}{\mintinline{lua}}
 \newcommand{\clean}{\mintinline{clean}}
 \setcounter{tocdepth}{1}

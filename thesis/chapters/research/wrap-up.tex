@@ -1,12 +1,18 @@
 \section{Wrap-up}\label{section-wrapup}
-\begin{itemize}
-    \item task types: structural type matching
-    \item task values: coroutine in table
-    \item type representation: Typed library
-    \item combinators, type matching
-    \item editor UI: text-based UI
-    \item SDS
-    \item LTasks implementation
-\end{itemize}
+We explored a number of design decisions in this chapter, and decided on them for the LTasks implementation.
+We defined that the proof-of-concept needs to have a basic implementation of tasks that can be composed sequentially and in parallel, and it needs to have editors with a UI (start of the chapter).
+For handling typed tasks and editors, we decided to implement structural type matching (section \ref{section-types}).
+We make use of coroutines by modelling the task as a table containing a coroutine, the task value and its stability (section \ref{section-task-values}).
+The types are represented at runtime using the Typed library (section \ref{section-type-representation}).
+We formalised a type specificity algorithm in section \ref{section-combinators-type-matching}. We noted what happens when lists or tables have more elements than required, and when lists have types in a different order than required.
+For editors, we use a textual UI instead of a HTML page, a native application or a command-line application (section \ref{section-editors-ui}).
+In the previous section (\ref{section-ltasks}) we show how the LTasks implementation works.
 
-\dots
+% \begin{itemize}
+%     \item task types: structural type matching
+%     \item task values: coroutine in table
+%     \item type representation: Typed library
+%     \item combinators, type matching
+%     \item editor UI: text-based UI
+%     \item LTasks implementation
+% \end{itemize}

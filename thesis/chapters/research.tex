@@ -1,13 +1,23 @@
 \chapter{Research}\label{research}
-This chapter, or series of chapters, delves into all technical details that are
-required to \emph{prove} your scientific hypothesis.
-It should be sufficiently detailed and precise in order for any fellow computing scientist student to be able to \emph{repeat}
-your research and therewith establish the same results / conclusions that you have obtained.
-Please note that, in order to improve readability of your thesis, you can put a part of this information also in one or
-more appendices (see Appendix \ref{appendix}).
+% This chapter, or series of chapters, delves into all technical details that are
+% required to \emph{prove} your scientific hypothesis.
+% It should be sufficiently detailed and precise in order for any fellow computing scientist student to be able to \emph{repeat}
+% your research and therewith establish the same results / conclusions that you have obtained.
+% Please note that, in order to improve readability of your thesis, you can put a part of this information also in one or
+% more appendices (see Appendix \ref{appendix}).
 
-\input{chapters/research/top-lua}
-\newpage
+\dots\todo{complete}
+
+There are many design decisions of TOP in Lua to be explored, resulting from the major differences between Clean and Lua. This research explores the design space and creates a proof-of-concept of TOP in Lua based on these decisions. The proof-of-concept is complete, when:
+\begin{itemize}
+    \item it features a basic implementation of tasks
+    \item these tasks can be composed sequentially and in parallel (both ``and'' and ``or'').
+    \item it has a way of interaction with users (editors), and some form of user interface that is automatically generated. Minimally, the editors should be able to model tables, strings, numbers and booleans.
+    % \item it has shared data sources that can be modified by these editors.
+\end{itemize}
+
+The concept of shared data sources and exceptions in TOP (\S \ref{section-top-task-value}) are out of scope for this thesis.
+
 \input{chapters/research/types-editors-step}
 % \newpage
 \input{chapters/research/task-values}
@@ -17,7 +27,7 @@ more appendices (see Appendix \ref{appendix}).
 \input{chapters/research/combinators}
 % \newpage
 \input{chapters/research/editors-ui}
-\input{chapters/research/other}
+% \input{chapters/research/other}
 % \newpage
 \input{chapters/research/ltasks}
 % \newpage

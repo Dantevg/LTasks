@@ -1,12 +1,3 @@
 \section{TOP in Lua}\label{section-top-lua}
-Lua's coroutines can turn out to be very useful for modelling tasks. Metatables can be used for adding behaviour or meta-information to otherwise simple (or empty) tables. This can change how editors are displayed visually for instance. There are many design decisions to be explored, resulting from the major differences between Clean and Lua.
-
-The proof-of-concept of TOP in Lua is complete, when:
-\begin{itemize}
-    \item it features a basic implementation of tasks that can be composed sequentially and in parallel (both ``and'' and ``or'').
-    \item it has a way of interaction with users (editors), and some form of user interface that is automatically generated. Minimally, the editors should be able to model tables, strings, numbers and booleans.
-    \item it has shared data sources that can be modified by these editors.
-\end{itemize}
-
-The concept of exceptions in TOP (\S \ref{section-top-task-value}) is out of scope for this thesis.
+Lua's coroutines can turn out to be very useful for modelling tasks. Metatables can be used for adding behaviour or meta-information to otherwise simple (or empty) tables. This can change how editors are displayed visually for instance. 
 % The proof-of-concept should make use of the features that Lua offers, being an interpreted dynamically typed language. Especially the features/use-cases that are not present/possible with the current implementations iTasks and mTasks.
