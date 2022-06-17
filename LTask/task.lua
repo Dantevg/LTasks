@@ -2,9 +2,9 @@
 	This module contains functions for creating tasks and for composing them.
 ]]
 
-local typed = require "typed"
 local ltuiElements = require "LTask.ltuiElements"
 local app = require "LTask.ltuiApp"
+local types = require "LTask.types"
 
 local task = {}
 task.__index = task
@@ -60,26 +60,18 @@ function task.transformValue(t, fn)
 	return task.transform(t, function(value, stable) return fn(value), stable end)
 end
 
-local function matchTypes(value, stable, action, conts)
-	-- Order is important
-	local matching = {}
-	for _, cont in ipairs(conts) do
-		-- Transform types for use with typed
-		if cont.type == nil then cont.type = "any" end
-		if cont.type == "table" then cont.type = "table<any, any>" end
-		
-		local typeMatches
-		if type(cont.type) == "string" then
-			typeMatches = typed.is(cont.type, value)
-		else
-			typeMatches = cont.type:validate(value)
-		end
-		
-		local actionMatches = (cont.action == nil or action == cont.action)
-		
-		if typeMatches and actionMatches then
+local function matchContinuation(value, stable, action, conts)
+	local matching, matchingConts = {}, types.matchAll(value, conts)
+	table.sort(matchingConts, types.lt)
+	local bestType
+	for _, cont in ipairs(matchingConts) do
+		if bestType and types.lt(cont.type, bestType) then break end
+		if cont.action == nil or action == cont.action then
 			local next = cont.fn(value, stable)
-			if next then table.insert(matching, next) end
+			if next then
+				table.insert(matching, next)
+				if not bestType then bestType = cont.type end
+			end
 		end
 	end
 	return matching
@@ -105,7 +97,7 @@ function task.step(t, conts)
 			if options.showUI then ltuiElements.stepDialog(self, conts, t) end
 			t:resume(options, false, self)
 			if t.value ~= nil then
-				matching = matchTypes(t.value, t.stable, options.action, conts)
+				matching = matchContinuation(t.value, t.stable, options.action, conts)
 			end
 			if t.stable then break end
 			if #matching == 0 then self, options = coroutine.yield() end
