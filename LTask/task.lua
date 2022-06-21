@@ -337,6 +337,6 @@ end
 task.__band = task.parallelAnd
 task.__bor = task.parallelOr
 task.__bxor = task.step
-task.__concat = task.step -- For backwards compatibility, `..` is right-associative
+task.__concat = task.step -- For backwards compatibility: `..` is right-associative
 
 return task

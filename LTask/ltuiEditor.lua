@@ -95,7 +95,8 @@ end
 ---@return table task the resulting editor task
 function editor.editOptions(value, choices, converter, prompt, name)
 	return genericEditor(value, function(self)
-		local dialog = ltuiElements.choiceEditor(self.value ~= nil and tostring(self.value) or "",
+		local dialog = ltuiElements.choiceEditor(
+			self.value ~= nil and tostring(self.value) or "",
 			choices, converter, prompt,
 			function(val)
 				self.value = val
@@ -112,7 +113,8 @@ end
 ---@param prompt string?
 ---@return table task the resulting editor task
 function editor.editBoolean(value, prompt)
-	return editor.editOptions(value, {"true", "false"}, {true, false}, prompt, prompt or "editBoolean")
+	return editor.editOptions(value, {"true", "false"}, {true, false}, prompt,
+		prompt or "editBoolean")
 end
 
 ---An editor for tables.
