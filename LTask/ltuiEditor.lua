@@ -5,11 +5,7 @@
 
 local task = require "LTask.task"
 local ltuiElements = require "LTask.ltuiElements"
-local ltui = require "ltui"
 local app = require "LTask.ltuiApp"
-
-local log = require "ltui.base.log"
-local pretty = require "pretty"
 
 local editor = {}
 
