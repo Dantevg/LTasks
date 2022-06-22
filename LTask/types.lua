@@ -1,3 +1,7 @@
+--[[--
+	This module contains functions for comparing types and specificity.
+]]
+
 local typed = require "typed"
 
 local types = {}
