@@ -71,7 +71,7 @@ enterInformation [] >>* [
     OnValue (ifValue isPalindrome (showInput "palindrome: ")),
     OnValue (ifValue isGreeting (showInput "greeting: "))]
 \end{minted}
-\caption{Using the step combinator with \clean{OnValue} in Clean. It will automatically step once the user input is either a palindrome or a greeting.}
+\caption{Using the step combinator with \clean{OnValue} in iTasks. It will automatically step once the user input is either a palindrome or a greeting. \clean{isPalindrome} and \clean{isGreeting} are defined elsewhere, their implementation is not important. (A greeting is something like ``hello'' or ``I am ...'')}
 \label{lst:clean_step_onvalue}
 \end{subfigure}
 \begin{subfigure}{\textwidth}
@@ -79,13 +79,15 @@ enterInformation [] >>* [
 \bigskip
 \begin{minted}{clean}
 enterInformation [] >>* [
-	OnAction ActionContinue (ifValue isPalindrome (showInput "palindrome: ")),
-	OnAction ActionContinue (ifValue isGreeting (showInput "greeting: "))]
+    OnAction (Action "Check palindrome")
+        (ifValue isPalindrome (showInput "palindrome: ")),
+    OnAction (Action "Check greeting")
+        (ifValue isGreeting (showInput "greeting: "))]
 \end{minted}
-\caption{Using the step combinator with \clean{OnAction} in Clean. It will only step when the user clicks ``Continue.''}
+\caption{The same example as (a), but with \clean{OnAction}: it will only step when the user clicks ``Check palindrome'' or ``Check greeting.''}
 \label{lst:clean_step_onaction}
 \end{subfigure}
-\caption{\clean{OnValue} and \clean{OnAction} in iTasks. \clean{showInput} is a convenience wrapper around the iTasks function \clean{viewInformation}, \clean{isPalindrome} and \clean{isGreeting} are defined elsewhere.}
+\caption{\clean{OnValue} and \clean{OnAction} in iTasks. \clean{showInput} is a convenience wrapper around the iTasks function \clean{viewInformation}.}
 \label{lst:clean_step_onvalue_onaction}
 \end{figure}
 
@@ -93,13 +95,13 @@ enterInformation [] >>* [
 The type of values that a continuation expects will need to be attached to the continuation, in the format just described in section \ref{section-type-representation}. To decide what continuation to step to in Lua, we use a type matching function. As hinted at in section \ref{section-types-matching}, there are many different ways for a type matching function to work. The considerations as well as the choices for this proof of concept and the reasoning behind the choices are outlined here. The syntax used here is hypothetical.
 
 \subsubsection{Best match or first match}
-When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. This possibility of having multiple continuations that match is also present in iTasks, where the first match is used. Actually, in iTasks all continuations need to accept exactly the same type so it is not possible to find a ``best'' match. This limitation is not there in dynamically typed languages like Lua.
+When there are multiple continuations that match the current task value, we need to decide which of the continuations to execute. This possibility of having multiple continuations that match is also present in iTasks, where the first \clean{OnValue} or otherwise the first \clean{OnAction} match is used. Actually, in iTasks all continuations need to accept exactly the same type so it is not possible to let the system automatically find a ``best'' match, only manually. This is easier to do in dynamically typed languages like Lua.
 
 We can define a \textit{better} match to be a more \textit{specific} one: \lua{number} is more specific than \lua{string | number} (a union), because the first one does not accept strings. \lua{table<string, number>} (a table with \lua{string} keys and \lua{number} values) is more specific than just \lua{table}, and a table \lua{{id: number, age: number}} (a struct) is even more specific than both of these.
 
 % https://link.springer.com/content/pdf/10.1007/3-540-52592-0_68.pdf
 
-We can formalise this intuitive relation, let's write $T_1 < T_2$ if $T_2$ is more specific than $T_1$. If some $T_1$ and $T_2$ do not match any of the following rules, they are either not comparable or equivalent. $T$ denotes any type, $t$ is any type except unions, $F$ and $G$ are pairs of key name and value type, and $k$ is a string key. $T\ |\ T$ (same type on left and right side) is equal to just $T$. Order does not matter for union types: $T_1\ |\ T_2$ is equal to $T_2\ |\ T_1$. A struct with no pairs is equal to a table. Note that relation defined here is intended to be simple, so it does not include things like tuple types or a specified list length.
+We can formalise this intuitive relation, let's write $T_1 < T_2$ if $T_2$ is more specific than $T_1$. To be able to use this relation in Lua with the \lua{table.sort} function, it needs to be a strict partial order \cite[\S 6.6]{luareferencemanual}: it must be irreflexive, asymmetric and transitive. If some $T_1$ and $T_2$ do not match any of the following rules, they are either not comparable or equivalent. $T$ denotes any type, $t$ is any type except unions, $F$ and $G$ are pairs of key name and value type, and $k$ is a string key. $T\ |\ T$ (same type on left and right side) is equal to just $T$. Order does not matter for union types: $T_1\ |\ T_2$ is equal to $T_2\ |\ T_1$. A struct with no pairs is equal to a table. Note that relation defined here is intended to be simple, so it does not include things like tuple types or a specified list length.
 
 The \lua{any} type is the least specific because it matches all types:
 \[ \mathrm{any} < T \qquad\mathrm{if~} T \neq \mathrm{any} \]
@@ -117,8 +119,11 @@ A table of any type is less specific than one with a list type specified:
 The same for a table that has a key and value type specified:
 \[ \mathrm{table} < \mathrm{table}(T_1, T_2) \]
 
-A table with set key and value types is less specific than a struct type, given that the struct type is not empty:
-\[ \mathrm{table}(T_1, T_2) < \{F_1, \dots, F_n\} \qquad\mathrm{if~} n > 0 \]
+A list is less specific than another list if their element types are less specific:
+\[ \mathrm{table}(T_1) < \mathrm{table}(T_2) \qquad\mathrm{if~} T_1 < T_2 \]
+
+A table with string keys and a set value type is less specific than a struct type, given that the struct type is not empty:
+\[ \mathrm{table}(\mathrm{string}, T) < \{F_1, \dots, F_n\} \]
 
 For two struct types with a corresponding pair of key and value-type, one is less specific than the other if the rest of the struct types is less specific:
 \begin{multline*}

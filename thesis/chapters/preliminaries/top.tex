@@ -1,11 +1,12 @@
 \section{Task Oriented Programming}\label{section-top}
 
-\textit{Task Oriented Programming} (TOP) is a programming paradigm centered around the concept of \textit{tasks} \cite{plasmeijer2012task}.
-A task in TOP is just like a task in the real world: a description of something that needs to be done, an abstract unit of work. A task can have an observable intermediate value and access to shared information. Some tasks are to be performed by a human and some can be done by a computer. By composing tasks in various ways, it is possible to create complex applications.
+% \cite{tosca2020semantic}
+
+In Task Oriented Programming \cite{plasmeijer2012task}, a task is just like a task in the real world: a description of something that needs to be done, an abstract unit of work. A task can have an observable intermediate value and access to shared information. Some tasks are to be performed by a human and some can be done by a computer. By composing tasks in various ways, it is possible to create complex applications.
 
 There are two implementations of TOP: iTask \cite{plasmeijer2007itasks}, written in the functional language Clean, is used for developing interactive distributed applications. mTask \cite{koopman2018task, lubbers2019multitasking}, written in Clean and C++, is used for IoT devices which are constrained in their resource usage. Both of them are a shallowly-embedded domain-specific language (EDSL). In this thesis we will primarily be comparing against iTasks.
 
-A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and some form of user interface.
+A TOP implementation must provide the concept of tasks, ways to compose the tasks where one task can read the value of another task, shared data sources and for interactive TOP systems also some form of user interface.
 % When a task is in progress, its value can already be observed.
 % They vary from simply displaying text to running an entire application.
 % The underlying technical details are taken care of automatically by the TOP framework.
@@ -50,9 +51,9 @@ There is a way to create tasks with a stable value, called \texttt{return} in iT
 
 % With sequential composition (named \texttt{step} in iTasks), first task 1 is started before starting task 2 with the value of task 1. In parallel composition, both tasks 1 and 2 need to be done, or either task 1 or 2.
 
-We will use the example of having breakfast, adapted from Naus \cite{naus2020assisting}. To make breakfast, you first make something to drink. This can be either tea or coffee. You also make something to eat, a sandwich in this example. You can do that already while you are waiting for your drink to be ready. When you have your drink and your sandwich, you can eat it. The whole operation of having breakfast can be seen and modelled as a task, composed of smaller tasks.
+We use the example of having breakfast, adapted from Naus \cite{naus2020assisting}. To make breakfast, you first make something to drink. This can be either tea or coffee. You also make something to eat, a sandwich in this example. You can do that already while you are waiting for your drink to be ready. When you have your drink and your sandwich, you can eat it. The whole operation of having breakfast can be seen and modelled as a task, composed of smaller tasks.
 
-The breakfast example using the combinators from the iTasks framework \mintinline{clean}{>>-} (sequential), \mintinline{clean}{-&&-} (parallel and) and \mintinline{clean}{-||-} (parallel or) looks like listing \ref{lst:clean_breakfast}:
+The breakfast example using the combinators \mintinline{clean}{>>-} (sequential), \mintinline{clean}{-&&-} (parallel and) and \mintinline{clean}{-||-} (parallel or) from iTasks looks like listing \ref{lst:clean_breakfast}.
 
 \begin{figure}[ht]
 \centering
@@ -72,31 +73,31 @@ The breakfast example using the combinators from the iTasks framework \mintinlin
 %     >>- enjoyMorning
 % \end{minted}
 
-A task composed sequentially does not have to wait for the first task to complete before starting. It can even be the case that task 2 becomes stable when task 1 still has an unstable value. For example task 1 could give an overview of free hospital beds. Task 2 could then decide to continue (have a stable value) once there is a suitable bed available, while the overview of hospital beds will never reach a stable state. This situation looks like this in iTasks:
+A task composed sequentially does not have to wait for the first task to complete before starting. It can even be the case that task 2 becomes stable when task 1 still has an unstable value. For example, task 1 could give an overview of free hospital beds. Task 2 could then decide to continue (have a stable value) once there is a suitable bed available, while the overview of hospital beds will never be stable. This situation looks like this in iTasks:
 
-\medskip
+\bigskip\noindent
 \begin{minted}{clean}
 hospitalBeds >>* [OnValue (ifValue (\beds = length beds > 0)
     (\beds = return (hd beds)))]
 \end{minted}
-\todo{double-check this in clean ide}
 
-Or think of a task that waits for a specific time. Task 1 (a task that yields the current time) will always have an unstable value (because time keeps changing), but eventually the waiting task becomes stable.
+\bigskip
+Or think of a task that waits for a specific time before returning a value. Task 1 (a task that yields the current time) will always have an unstable value (because time keeps changing), but eventually the waiting task becomes stable.
 
 \subsection{Shared data sources}\label{section-top-sds}
 Tasks are \textit{distributed} and \textit{concurrent}. For instance, in a multi-user system, two tasks that are composed in parallel could be done by two different users at the same time. Note that a TOP implementation does not have to be a multi-user system. While iTasks is multi-user, mTasks is not (because having users makes little sense in an IoT environment).
 
 Sharing data between tasks is done with shared data sources like files or sensors. These can interact with tasks. Not all shared data sources have to be both readable and writable; the current date and time are examples of read-only shared data sources.
-When tasks are composed in parallel, they get a read-only shared data source that reflects the current value of each other \cite[\S 2.1]{plasmeijer2012task}. The following is an example of a SDS that is both readable and writable, letting the user input two numbers and showing their sum immediately.\todo{reference?}
-% \footnote{Example taken from the slides of the \textit{Advanced Programming} master course.}
+When tasks are composed in parallel, they get a read-only shared data source that reflects the current value of each other \cite[\S 2.1]{plasmeijer2012task}. The following is an example of a SDS that is both readable and writable, letting the user input a list of words and immediately showing the sentence made from these words.
 
-\medskip
+\bigskip\noindent
 \begin{minted}{clean}
-mySDS = sharedStore "mySDS" (1,2)
+wordsSDS :: SimpleSDSLens [String]
+wordsSDS = sharedStore "wordsSDS" []
 
-tupTask = (updateSharedInformation [] mySDS <<@ Title "input editor")
-    -|| (viewSharedInformation [ViewAs (uncurry (+))] mySDS
-        <<@ Title "sum view")
+wordsTask = (updateSharedInformation [] wordsSDS <<@ Title "enter words")
+    -|| (viewSharedInformation [ViewAs (foldl (+++) "")] wordsSDS
+        <<@ Title "sentence view")
 \end{minted}
 
 \subsection{User interface}
@@ -108,9 +109,9 @@ An editor task never has a stable value. When an editor task is composed sequent
 
 User interfaces of combined tasks are composed of the user interfaces of the components. For example in iTasks, if two tasks assigned to the same user are combined in parallel, they are shown next to each other. \cite[\S 4.2.4]{naus2020assisting}
 
-Since iTasks is written in the statically typed language Clean, a task can only have a predetermined set of values---true/false, numbers, dates, choices, etc. This allows us to make use of the existing HTML form input fields when generating a web interface. This is useful for two reasons. First, these form fields only allow valid input, i.e. you can't input arbitrary text in a number field. Second, they improve usability by adapting the input method, for instance displaying a date picker.
+Since iTasks is written in the statically typed language Clean, the possible values a task can have are predetermined by its type. This allows us to make use of the existing HTML form input fields when generating a web interface. This is useful for two reasons. First, these form fields only allow valid input, i.e. you can't input arbitrary text in a number field. Second, they improve usability by adapting the input method, for instance displaying a date picker.
 
-This generation of different HTML form fields is done automatically in iTasks. This is possible because in a statically typed language the types are available statically, before any value is present.
+This generation of different HTML form fields is done automatically in iTasks. This is possible because Clean is statically typed---types are available statically, before any value is present---and has generic types.
 
 \subsection{Implementation in iTasks}
 Since iTasks is written in the functional language Clean, tasks are modelled as functions. Functions in Clean are pure; they cannot mutate existing values. Instead, a task is implemented as a function that can process an event, using the information stored in the \clean{IWorld} environment, and that results in a new version of itself, the task value, any user interface changes, and the \clean{IWorld}.

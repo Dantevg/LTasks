@@ -10,8 +10,10 @@
 \usepackage{todonotes}
 \usepackage{tikz}
 \usetikzlibrary{automata, positioning, arrows.meta}
+\usepackage{fancyvrb}
 \usepackage{minted}
-\setminted{fontsize=\footnotesize, autogobble, breaklines=true}
+\setminted{fontsize=\footnotesize, autogobble, breaklines, tabsize=4}
+\newcommand\mynumberformat{\def\FancyVerbFormatLine##1{{\theFancyVerbLine} ##1}}
 \RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}
 \renewcommand{\figurename}{Listing}
 \usepackage{caption}
@@ -33,7 +35,7 @@
 \setlength{\topmargin}{0cm}
 \setlength{\extrarowheight}{3pt} %for superscripts in tabular
 \setlength{\arraycolsep}{4pt}
-\lstset{basicstyle = \footnotesize, breaklines = true}
+\lstset{basicstyle=\footnotesize, breaklines=true}
 
 \begin{document}
 
@@ -64,7 +66,11 @@
 \bibliographystyle{plain}
 \bibliography{bibliography}
 
+% reset verbatim environment for appendix, otherwise minted pagebreaks and linenos are broken
+\RecustomVerbatimEnvironment{Verbatim}{Verbatim}{}
+
 \appendix
-\input{chapters/appendix}
+\input{chapters/appendix-examples}
+\input{chapters/appendix-ltask}
 
 \end{document}

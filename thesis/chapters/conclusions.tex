@@ -5,10 +5,27 @@
 % these should have been written down earlier in the thesis.
 % Therefore, conclusions can be brief and to the point.
 
-In this thesis we explored the design decisions that come up when implementing TOP in a procedural language, and we have written a proof-of-concept TOP implementation called LTasks.
+In this bachelor thesis we explored the design decisions that come up when implementing TOP in a procedural language, and we have written a proof-of-concept TOP implementation called LTasks.
+LTasks contains the most important parts for a TOP implementation: it has tasks, these tasks can be composed sequentially and in parallel, and there is interaction with users through editor tasks.
 
-There are two major differences between Clean and Lua: Clean is statically typed while Lua is dynamically typed, and Lua has coroutines which Clean does not have. \dots
+The first major difference between Clean and Lua is that Clean is statically typed while Lua is dynamically typed.
+We explored a number of ways to work with Lua's dynamic types. Structural type matching is the most interesting choice here, which we use in LTasks.
+% : adding types, using validator and conversion functions, interfacing with JSON APIs or structural type matching.
+% The second major difference between Clean and Lua is that
+Lua has coroutines while Clean does not. Coroutines are more convenient than functions for modelling tasks, so a task in LTasks is a table with a coroutine.
+The most important choice for structural type matching is whether to choose the first match or the best match. We defined an algorithm to find that best match, which we use in LTasks.
+User interaction through editors in LTasks happens in a text-based user interface, because that is the simplest form of UI that can display all TOP features.
+
+% There are a number of ways to do structural type matching for the step continuation tasks. We can either choose first match or the best match, and we defined an algorithm to find that best match. We defined that lists that are longer or that have a different order of types should not match, and that tables with more fields should match.
+
+% For editors, we can create a HTML page, a native application, a text-based UI or a command-line UI.
+
+% For LTasks, we chose to do structural type matching. Tasks are modelled as tables containing coroutines. We use the Typed library to represent and match types, but use our own algorithm for finding the most specific type. We use the LTUI library for creating a text-based UI.
 
 \section{Future work}
-A better way of representing types so that more Lua features can be used. Since the main goal of using types here is not to check the correctness of a program but to use them for augumenting the features Lua provides, the ``type system'' should not aim for soundness but rather for completeness.
-Related to this, a more complete type specificity algorithm.
+The proof-of-concept implementation uses the Typed library to represent types at runtime. However, this library can only represent a limited set of data structures and is very strict in what it matches. Further research could find a better way of representing types at runtime so that more Lua features can be used, developing a less strict type matching algorithm and a more complete type specificity relation to go along with it.
+
+This research focused only on the core concepts of TOP, and left shared data sources and exceptions out of scope. Further research can go into expanding the LTask implementation by bringing SDS and exceptions to Lua.
+
+% A better way of representing types so that more Lua features can be used. Since the main goal of using types here is not to check the correctness of a program but to use them for augumenting the features Lua provides, the ``type system'' should not aim for soundness but rather for completeness.
+% Related to this, a custom type matching algorithm and a more complete type specificity algorithm.

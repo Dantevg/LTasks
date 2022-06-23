@@ -5,13 +5,13 @@ Lua has the \lua{type} function that returns the type of the value passed as a s
 Tasks and editors require a more elaborate system that can distinguish types of composite values. We need to consider the way these types are written, how they are represented or stored at runtime, and how they are compared against each other. We will elaborate on multiple ways to solve the first two considerations now, how to compare types is left for section \ref{section-combinators-type-matching}.
 
 \subsection{LuaRocks libraries}\label{section-task-types-luarocks}
-When looking for Lua libraries, I primarily used LuaRocks\footnote{\label{footnote-luarocks}\url{https://luarocks.org/}}, which is the most used Lua package manager and package repository. There are a number of libraries that come up when searching for ``types''. Three of them have some way to represent composite types at runtime.
-LuaStruct\footnote{\label{footnote-luastruct}\url{https://luarocks.org/modules/UlisseMini/luastruct}},
-Struct.lua\footnote{\url{https://github.com/mpatraw/struct.lua}} and
+When looking for Lua libraries, I primarily used LuaRocks\footnote{\label{footnote-luarocks}\url{https://luarocks.org/}}, which is the most used Lua package manager and package repository. There are a number of libraries that come up when searching for ``types''. Three of them have some way to represent composite types at runtime:
+luastruct\footnote{\label{footnote-luastruct}\url{https://luarocks.org/modules/UlisseMini/luastruct}},
+struct.lua\footnote{\url{https://github.com/mpatraw/struct.lua}} and
 Typed\footnote{\label{footnote-typed}\url{https://luarocks.org/modules/SovietKitsune/typed}}.
 
-\subsubsection{LuaStruct and Struct.lua}
-LuaStruct and struct.lua represent types at runtime by a default value. The example from the LuaRocks description\footref{footnote-luastruct} of LuaStruct describes the type of a table with a \lua{name} field of type \lua{string} (by default \lua{"default value"}) and an \lua{age} field of type \lua{number} (default \lua{0}):
+\subsubsection{luastruct and struct.lua}
+luastruct and struct.lua represent types at runtime by a default value. The example from the LuaRocks description\footref{footnote-luastruct} of luastruct describes the type of a table with a \lua{name} field of type \lua{string} (by default \lua{"default name"}) and an \lua{age} field of type \lua{number} (default \lua{0}):
 
 \medskip
 \begin{minted}{lua}
@@ -21,17 +21,17 @@ local person = struct {
 }
 \end{minted}
 
-Struct.lua works in the same way, and this example is also valid there. This may be a very simple way to store composite types at runtime, but it has the obvious downside that every field must have a default value. For editors, this is not that big of a problem. But for specifying what type a task accepts, this can be very inconvenient. Furthermore, in this place the actual default value does not have any use: only its type will be used. A bigger problem for representing types of tables in this thesis is that these libraries are only about \textit{structs}; they do not have a way to represent arrays.
+struct.lua works in the same way, and this example is also valid there. This may be a very simple way to store composite types at runtime, but it has the obvious downside that every field must have a default value. For editors, this is not that big of a problem. But for specifying what type a task accepts, this can be very inconvenient. Furthermore, in this place the actual default value does not have any use: only its type will be used. A bigger problem for representing types of tables in this thesis is that these libraries are only about \textit{structs}; they do not have a way to represent arrays.
 
 \subsubsection{Typed}
 Typed is a library for checking a function's arguments. It gives formatted error messages containing information on what type was expected. The error messages are not interesting for this thesis, but how it represents composite types is. Arrays can be represented like the string \lua{"number[]"}, maps are written as \lua{"table<string, boolean>"}. When multiple types are valid, they can be written as \lua{"string | number"}. For more complicated types like what LuaStruct and Struct.lua do, it uses schemas, for example a table that contains the string field \lua{name} and a numeric field \lua{id} is written like this: \lua{typed.Schema('test'):field('name', 'string'):field('id', 'number')}.
 
 \subsection{Lua extensions}
 % \subsubsection{Typed Lua}
-Maidl, Mascarenhas and Ierusalimschy \cite{maidl2014typed} designed a gradually typed extension of Lua called Typed Lua. ``does not insert runtime checks between dynamically and statically typed parts of the program,'' but it does have its own way of representing these types in code.
+Maidl, Mascarenhas and Ierusalimschy \cite{maidl2014typed} designed a gradually typed extension of Lua called Typed Lua. It does not keep types at runtime, but it does have its own way of representing these types in code.
 
 % \subsubsection{Pallene}
-Pallene, developed by Gualandi and Ierusalimschy \cite{gualandi2020pallene}, is a ``typed companion language to the Lua scripting language.'' It is ``very close to a typed subset of Lua.'' In contrast to Typed Lua, it does sometimes keep types for runtime type checks.
+Pallene, developed by Gualandi and Ierusalimschy \cite{gualandi2020pallene}, is a typed subset of Lua. In contrast to Typed Lua, it does sometimes keep types for runtime type checks.
 
 % \subsubsection{Teal}
 Teal\footnote{\url{https://github.com/teal-language/tl}} is a language that compiles to Lua, implemented in Lua. It has an online playground\footnote{\url{https://teal-playground.netlify.app}} that shows that types are removed at runtime.
@@ -44,4 +44,4 @@ Unlike Teal, Luau\footnote{\url{https://luau-lang.org/}} does not compile to Lua
 TypeScript\footnote{\url{https://www.typescriptlang.org/}} is a language that transpiles to JavaScript. Like Typed Lua, Teal and Luau, its types get removed at compile time. We can still learn from the way types are written, though.
 
 \subsection{Typed library}
-The Typed library library is the most complete of the three, so we will use it in the proof-of-concept for representing types at runtime. The matching of types will initially also be done by the library, but later on we will design a custom match algorithm. While the library is more complete than the rest, it is still missing some non-essential features we would like to have such as being able to describe a table which both has predetermined fields and is also an array. Implementing these is out of scope for this thesis, but the design decisions themselves will be considered in section \ref{section-combinators-type-matching}.
+The Typed library library is the most complete of the three libraries, so we will use it in the proof-of-concept for representing types at runtime. The matching of types will initially also be done by the library, but later on we will design a custom match algorithm. While the library is more complete than the rest, it is still missing some non-essential features we would like to have such as being able to describe a table which both has predetermined fields and is also an array. Implementing these is out of scope for this thesis, but the design decisions themselves will be considered in section \ref{section-combinators-type-matching}.

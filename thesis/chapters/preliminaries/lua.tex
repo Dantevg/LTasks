@@ -41,10 +41,10 @@ By default, variables are global. To make them local, you put \lua{local} in fro
 The types \texttt{table}, \texttt{function}, \texttt{thread} and \texttt{userdata} are reference types (the Lua manual calls them \textit{objects} \cite[\S 2.1]{luareferencemanual}). This means that \lua{{} == {}} evaluates to \lua{false} because they refer to two separate tables. However \lua{"" == ""} evaluates to \lua{true} because \texttt{string} is not a reference type.
 
 \subsection{Tables}
-Lua's main (and only) composite data structure is the table. A table is an associative array and fulfills the purposes of arrays, objects and maps in other languages. A table can store any type of key except \lua{nil}, and any type of value. Note that this means it is possible to have keys of reference types or \textit{objects} (such as tables, defined above). Having values stored by integer keys creates a kind of array. Since Lua is dynamically typed, a table can hold both integer keys/values and other type keys/values at the same time: a single table can function as both an array and a map. Indexing a table with an arbitrary type key uses square brackets (\lua{tbl[key]}). There is a shorthand for accessing string keys: \lua{tbl.key} is syntactic sugar for \lua{tbl["key"]}, for string keys that are valid identifiers (so no spaces)\todo{too specific, remove later}.
-% (only if \lua{key} is valid as an identifier, it cannot contain spaces for instance).
+Lua's main (and only) composite data structure is the table. A table is an associative array and fulfills the purposes of arrays, objects and maps in other languages. A table can store any type of key except \lua{nil}, and any type of value. Note that this means it is possible to have keys of reference types or \textit{objects} (such as tables, defined above). Having values stored by integer keys creates a kind of list. Since Lua is dynamically typed, a table can hold both integer keys/values and other type keys/values at the same time: a single table can function as both a list and a map. Indexing a table with an arbitrary type key uses square brackets (\lua{tbl[key]}). There is a shorthand for accessing string keys: \lua{tbl.key} is syntactic sugar for \lua{tbl["key"]}.
+% for string keys that are valid identifiers (so no spaces).
 
-Tables as arrays are 1-indexed, though nothing prevents you from assigning a value to key \lua{0} (or negative numbers). Removing an item from a table can be done by setting it to \lua{nil}, and attempting to access a non-existent field in a table results in \lua{nil}. Listing \ref{lst:lua_tables} shows an example of using tables as arrays.
+Tables as lists are 1-indexed, though nothing prevents you from assigning a value to key \lua{0} (or negative numbers). Removing an item from a table can be done by setting it to \lua{nil}, and attempting to access a non-existent field in a table results in \lua{nil}. Listing \ref{lst:lua_tables} shows an example of using tables as lists.
 
 \begin{figure}[ht]
 \centering
@@ -234,7 +234,7 @@ There are some important differences between Lua and Clean. The most important o
 
 Clean does not have coroutines and uses functions to model tasks. In this thesis we show how we can use coroutines to model tasks (section \ref{section-task-values}).
 
-Another important difference is that Clean is statically typed and compiled while Lua is dynamically typed and interpreted. Statically typed languages provide a higher level of correctness, but interpreted languages allow for faster prototyping. Type information in Lua, like most dynamically typed languages, is not precise: all tables have type \lua{table}, regardless of their contents.
+Another important difference is that Clean is statically typed and compiled while Lua is dynamically typed and interpreted. Type information in Lua, like most dynamically typed languages, is not precise: all tables have type \lua{table}, regardless of their contents. In section \ref{section-types} we explore ways to meaningfully work with this in Lua.
 
 % http://www.mcours.net/cours/pdf/hasclic2/hassclic117.pdf
 % http://www.lua.org/doc/jucs04.pdf

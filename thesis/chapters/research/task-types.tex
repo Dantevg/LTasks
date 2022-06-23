@@ -1,18 +1,18 @@
 \section{Task types}\label{section-types}
 
 Lua is dynamically typed, so a variable or field can hold any type of value at any point in time. A function can take any number of arguments and return any number of values of any type. Type information is also not attached to variables/fields, but to the values. The consequence of this is that there is no type information present when there are no values yet---a field in a table without any value (i.e. the table key is assigned \lua{nil}) simply does not exist.
-iTasks and Clean use types to automatically create editor UI and to validate task inputs, but that is not possible in Lua by default. Because of this fundamental difference between Clean and Lua, we need to rethink and redesign the TOP concepts as used in iTasks. Below we explore the design space.
+iTasks uses types to automatically create editor UI and to validate task inputs, but that is not possible in Lua by default. Because of this fundamental difference between Clean and Lua, we need to rethink and redesign the TOP concepts as used in iTasks. Below we explore the design space.
 
 \subsection{Adding types}\label{section-types-adding}
 The programmer specifies which type a task or field is supposed to have. The type information is given in a format similar to JSON schema\footnote{\label{footnote-json-schema}\url{https://json-schema.org/}}. This type information is then attached as meta-information to a task, and checked dynamically. This idea basically comes down to emulating a statically typed language and comes closest to how iTasks handles TOP. Because the editor task has an associated output type, it is possible for the implementation to automatically generate editor UI that is appropriate and specific to the type of value.
 
-I think this is a weird direction to go into for a dynamically typed language. Instead of choosing this method in Lua, it would be a better idea to use a statically typed language. Or, instead of trying to fight the dynamic language, we should embrace it. This is what the other ideas do.
+This is a weird direction to go into for a dynamically typed language: instead of choosing this method in Lua, it would be a better idea to use a statically typed language because it already has these features built-in. Alternatively, instead of trying to fight the dynamic language, we should embrace it. This is what the other ideas do.
 % Opinion: maybe a bit weird, why not use a statically typed language? Maybe it can be interesting to allow specifying multiple possible types.
 
 \subsection{Validator and conversion functions}\label{section-types-validator-conversion}
-Do not specify types, but validate or convert task input. For example a task that expects a number can use the \lua{tonumber()} validator / conversion function and fail if the provided value is not accepted by the validator function.
+The idea here is to not specify types, but validate or convert task input. For example a task that expects a number can use the \lua{tonumber()} validator / conversion function and fail if the provided value is not accepted by the validator function.
 
-Since there is no information about what type of data a task expects or needs to output, it is impossible to automatically generate type-specific editors. Instead, the user is in charge of selecting the right editor type. The user interface allows the user to change the input method (for example from text to a list).
+Since there is no information about what type of data a task expects or needs to output, it is impossible to automatically generate type-specific editors. Instead, the user is in charge of selecting the right editor type. The user interface allows the user to change the input method---for example from text to a list (which can contain items of differing types).
 
 This is a versatile way to enter information, compared to the static types of Clean. For example entering a date can be done in these ways, with each of them having their own function to check if the format is correct and to optionally convert it to a different format:
 \begin{itemize}
@@ -41,17 +41,17 @@ With this approach, tasks do not have any type information attached and can simp
 If we restrict ourselves to only JSON web APIs (which are automatically served by websites), there is no longer an interactive component for users. This is problematic because we just defined (at the start of this chapter) that interactive editors are an essential component of TOP. While JSON can be hand-written by users as input to an editor, doing that is even less user-friendly than \ref{section-types-validator-conversion}.
 
 \subsection{Structural type matching}\label{section-types-matching}
-A different way to make use of the dynamic-ness of Lua is to attach a type to all task continuations passed to the step combinator. Each continuation can accept a different type, something that is not possible in Clean.
-The step combinator can then employ a matching algorithm to find which task it should execute based on the value of the previous task.
-The matching algorithm should not only match the primitive type, but should also be able to match more complex structures like lists, or tables with specific fields. The major difference with the first option ``adding types'' (section \ref{section-types-adding}) and with statically typed languages is that you can add continuations for multiple different types to the step combinator, and that the output type of editors can still change at runtime.
+A different way to make use of the dynamic-ness of Lua is to attach a type to all task continuations passed to the step combinator. Each continuation can accept a different type, something that is not possible with iTasks.
+The step combinator can then employ a matching algorithm to find which task it should execute, based on the value of the previous task.
+The matching algorithm should not only match primitive types, but should also be able to match more complex structures like tables as lists, or tables with specific fields. The major difference with the first option ``adding types'' (section \ref{section-types-adding}) and with statically typed languages is that you can add continuations for multiple different types to the step combinator, and that the output type of editors can still change at runtime.
 
-There are many different ways to design such a matching algorithm, as there are many design considerations. When multiple tasks would match some value, the algorithm could find the first match, or the best match. Finding the best match requires defining a measure of match quality. What happens to tables that have more fields than the task requires?
+There are many different ways to design such a matching algorithm, as there are many design considerations. When multiple task continuations match some value, the algorithm can find either the first match or the best match. Finding the best match requires defining a measure of match quality. What happens to tables that have more fields than the task requires?
 
 You may think that an editor task before a step combinator can use the type information of tasks after the combinator to automatically deduce the right editor type to display. However, this goes against the TOP principle that tasks are autonomous: they do not depend on other tasks. What we can do is manually make a different editor for each type of output.
 
 This is the direction we will go into for this thesis, for the following reasons:
 it keeps the core concepts of TOP with user interaction,
 it makes use of the dynamic typing of Lua,
-it works in a way that is not possible with the current TOP implementations
+it works in a way that is not encouraged in the current TOP implementations
 % in the statically typed functional language Clean,
 and lastly I think it is the most interesting and novel idea.
