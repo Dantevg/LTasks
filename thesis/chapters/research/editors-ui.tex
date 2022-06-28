@@ -14,28 +14,28 @@ Pegasus\footnote{\url{https://luarocks.org/modules/evandrolg/pegasus}}.
 We will not be going this way, because while it may be the most user-friendly option and cross-platform, we estimate that the amount of work exceeds the scope of this proof-of-concept project and other options are usable enough for a proof of concept.
 
 \subsection{Native application}
-A native application looks about the same as a HTML page, but the difference is that interaction does not go via Javascript but via an API written in C. Lua native UI libraries:
+A native application looks about the same as a HTML page, but the difference is that interaction does not go via Javascript but via an API written in C. There are some native UI libraries for Lua:
 fltk4lua\footnote{\url{https://luarocks.org/modules/siffiejoe/fltk4lua}},
 TekUI\footnote{\url{https://luarocks.org/modules/luarocks/tekui}},
 AbsTK\footnote{\url{https://luarocks.org/modules/pedroalvesv/abstk}\label{footnote-abstk}},
 libuilua\footnote{\url{https://luarocks.org/modules/daurnimator/libuilua}},
 lui\footnote{\url{https://tset.de/lui/index.html}},
-lui\footnote{\url{https://github.com/zhaozg/lui}},
-wxLua\footnote{\url{https://github.com/pkulchenko/wxlua}}.
+lui\footnote{\url{https://github.com/zhaozg/lui}} and
+wxLua\footnote{\url{https://github.com/pkulchenko/wxlua}} to name a few.
 
-A native application has about the same usability as a webpage. Due to the fact that Lua is built to interoperate with C, it is easier to build a native application than a webpage. For this proof of concept, though, we will use a more simple form of user interface.
+A native application has about the same usability as a webpage. Due to the fact that Lua is built to interoperate with C, it is easier to build a native application than a webpage. For this proof of concept, though, we will use a simpler form of user interface.
 
 \subsection{Terminal text-based UI}
 The third way of displaying tasks somewhat graphically is by using a terminal emulator. There are a couple libraries for this:
 AbsTK\footref{footnote-abstk},
 ltui\footnote{\url{https://luarocks.org/modules/waruqi/ltui}},
 termfx\footnote{\url{https://luarocks.org/modules/gunnar_z/termfx}},
-lua-tui\footnote{\url{https://github.com/daurnimator/lua-tui}}. The first three are more complete UI-building libraries while lua-tui is more of a toolbox. AbsTK is not available for windows but I also have not been able to get it installed in Ubuntu on WSL yet. Termfx uses the no-longer-maintained termbox which needs Python 2, and I have not gotten that to work either.
+lua-tui\footnote{\url{https://github.com/daurnimator/lua-tui}}. The first three are more complete UI-building libraries while lua-tui is more of a toolbox. AbsTK is not available for windows but I also have not been able to get it installed in Ubuntu on WSL. Termfx uses the no-longer-maintained termbox which needs Python 2, and I have not gotten that to work either.
 
 For this thesis I chose to work with ltui. It is quite hard to start working with it because it has almost no documentation, but it does have the features needed for displaying tasks and editors. The way in which its example applications are structured is that there is one element of each type: one main dialog, one text input dialog, one output dialog, and so on. When one of these elements is needed, any old contents get replaced and it gets shown on screen.
 
 \subsection{Terminal command-line}
-Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this will be the initial interface of the proof of concept. Some features are too advanced for such a simple interface, they will only be implemented in a text-based UI.
+Since a command-line application does not have a graphical interface and is closer to the implementation, this is the least involved way of interfacing with the user. The user can only type commands and the application responds. This however does make it the least user-friendly, but for a minimal proof of concept this matters less. Since it only involves text input and output, it requires no libraries. Because it requires only the minimal extra setup and effort, this is the initial interface of the proof of concept. Some features are too advanced for such a simple interface, they will only be implemented in a text-based UI.
 
 \subsection{Tables in editors}
-Tables can be visually represented as a sequence of key-value pairs, with a ``$+$'' button for adding a new pair and a ``$-$'' button for removing a pair. A value without key acts as an array entry. These entries implicitly get a numeric key, just like in Lua. They can be displayed one after the other, without keys displayed. Tables that contain tables can be represented in two ways: either by a single element that, when clicked, navigates to the inner table entirely (like entering a directory in a file explorer), or by a collapsible indented list (like the sidebar in a file explorer). They both provide the same functionality, which one to choose comes down to preference or implementation details.
+Tables can be visually represented as a sequence of key-value pairs, with a ``$+$'' button for adding a new pair and a ``$-$'' button for removing a pair. A value without key acts as an array entry. These entries implicitly get a numeric key, just like in Lua. They can be displayed one after the other, without keys displayed. Tables that contain tables can be represented in two ways: either by a single element that, when clicked, navigates to the inner table entirely (like entering a directory in a file explorer), or by a collapsible indented list (like the sidebar in a file explorer). They both provide the same functionality; which one to choose comes down to preference or implementation details.

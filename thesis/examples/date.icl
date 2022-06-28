@@ -4,6 +4,8 @@ import StdEnv
 import iTasks
 
 import iTasks.Extensions.DateTime
+import Data.Functor
+from Data.List import elemIndex
 
 Start :: *World -> *World
 Start world = doTasks dateTask world
@@ -26,20 +28,10 @@ derive gText        DateAsNamedMonth, DateFormat
 derive gEditor      DateAsNamedMonth, DateFormat
 derive gHash        DateAsNamedMonth, DateFormat
 
+months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+
 toMonth :: String -> ? Int
-toMonth "jan" = ?Just 1
-toMonth "feb" = ?Just 2
-toMonth "mar" = ?Just 3
-toMonth "apr" = ?Just 4
-toMonth "may" = ?Just 5
-toMonth "jun" = ?Just 6
-toMonth "jul" = ?Just 7
-toMonth "aug" = ?Just 8
-toMonth "sep" = ?Just 9
-toMonth "oct" = ?Just 10
-toMonth "nov" = ?Just 11
-toMonth "dec" = ?Just 12
-toMonth _ = ?None
+toMonth monthName = (\x -> x + 1) <$> (elemIndex monthName months)
 
 dateString :: Task DateFormat
 dateString = updateInformation [] "" <<@ Hint "date as string:"

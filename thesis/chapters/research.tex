@@ -8,15 +8,15 @@
 
 There are many design decisions of TOP in Lua to be explored, resulting from the major differences between Clean and Lua. This research explores the design space and creates a proof-of-concept of TOP in Lua based on these decisions. The proof-of-concept is complete, when:
 \begin{itemize}
-    \item it features a basic implementation of tasks
+    \item it features a basic implementation of tasks,
     \item these tasks can be composed sequentially and in parallel (both ``and'' and ``or''), while making use of observable task values.
-    \item it has a way of interaction with users (editors), and some form of user interface that is automatically generated. Minimally, the editors should be able to model tables, strings, numbers and booleans.
+    \item it has a way of interacting with users (editors), and some form of user interface that is automatically generated. Minimally, the editors should be able to model tables, strings, numbers and booleans.
     % \item it has shared data sources that can be modified by these editors.
 \end{itemize}
 
-The concept of shared data sources and exceptions in TOP (\S \ref{section-top-task-value}) are out of scope for this bachelor thesis.
+The concepts of shared data sources (\S \ref{section-top-sds}) and exceptions (\S \ref{section-top-task-value}) in TOP are out of scope for this bachelor thesis.
 
-In the next section, we think about how to meaningfully work with the dynamic type system of Lua. After that, we look how we can represent tasks (\S \ref{section-task-values}) and task types (\S \ref{section-type-representation}). Section \ref{section-combinators} takes a look at task combinators, we discuss user interfaces in section \ref{section-editors-ui} and lastly we discuss LTasks (\S \ref{section-ltasks}).
+In the next section, we think about how to meaningfully work with the dynamic type system of Lua. After that, we look how we can represent tasks (\S \ref{section-task-values}) and task types (\S \ref{section-type-representation}). Section \ref{section-combinators} takes a look at task combinators, we discuss user interfaces in section \ref{section-editors-ui}, and lastly we discuss LTasks (\S \ref{section-ltasks}).
 
 % \newpage
 \input{chapters/research/task-types}

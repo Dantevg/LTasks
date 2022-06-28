@@ -1,7 +1,7 @@
 \chapter{Comparison}\label{comparison}
 This chapter will compare iTasks and LTasks using a case study of the breakfast example adapted from Naus \cite{naus2020assisting} in listing \ref{lst:clean_breakfast}. To make it into a functioning example with editors, we need to modify it a bit. \lua{makeTea}, \lua{makeCoffee} and \lua{makeSandwich} are here modelled as editors. In the real world, they will be tasks that have no value initially, and a constant value once the tea, coffee or sandwich has been made. This allows us to make use of the standard task combinators without helper functions, like the example in listing \ref{lst:clean_breakfast}. This complete but contrived example is however more interesting because it makes use of editors and the transform combinator. The entire example can be seen in appendix \ref{appendix-breakfast}.
 
-\section{Main task and combinators}
+% \section{Main task and combinators}
 The high level overview looks like listing \ref{lst:comparison_breakfast}. As you can see, they are almost identical. Lua uses different operators, and instead of an \clean{OnValue} there is a table with a \lua{fn} field.
 
 \begin{figure}[ht]
@@ -17,7 +17,7 @@ The high level overview looks like listing \ref{lst:comparison_breakfast}. As yo
 \centering
 \bigskip % space between subfigures
 \begin{minted}{lua}
-((makeTea | makeCoffee) & makeSandwich) .. {{fn = maybeEatBreakfast}}
+((makeTea | makeCoffee) & makeSandwich) ~ {{fn = maybeEatBreakfast}}
 \end{minted}
 \caption{In LTasks}
 \label{lst:comparison_breakfast_lua}
@@ -27,7 +27,7 @@ The high level overview looks like listing \ref{lst:comparison_breakfast}. As yo
 \end{figure}
 
 \section{Editors}
-There is a bit more difference in making editors than the basic combinators. iTasks uses combinators to add hints to editors, while LTasks includes the hints in the function signature, for simplicity. The most important difference in this example comes from the fact that Clean is statically typed, so the transformation function cannot return different types as in Lua. Instead, it has to return a maybe (an algebraic data type).
+There is a bit more difference in making editors than in the basic combinators. iTasks uses combinators to add hints to editors, while LTasks includes the hints in the function signature, for simplicity. The most important difference in this example comes from the fact that Clean is statically typed, so the transformation function cannot return different types as in Lua. Instead, it has to return a maybe (an algebraic data type), and we need to use \clean{tvFromMaybe}, which takes a \clean{TaskValue} of a \clean{?None} or \clean{?Just} and turns it into \clean{NoValue} or \clean{Value}, respectively. This is not needed in LTasks, where we can simply return \lua{nil} from the transformation function.
 
 \begin{figure}[ht]
 \begin{subfigure}{\textwidth}
@@ -55,7 +55,8 @@ local makeTea = editor.editBoolean(false, "make tea?")
 \end{figure}
 
 \section{Helper function}
-The wrapping of the actual value in a \clean{TaskValue} and a maybe type is harder to work with, we need to use pattern matching. Listing \ref{lst:comparison_maybe} shows the helper functions that are needed to create a \lua{viewInformation} task only if a food and drink are chosen. These functions are needed due to the fact that this is a contrived example.
+Listing \ref{lst:comparison_maybe} shows the helper functions that are needed in order to create a \lua{viewInformation} task only if both a food and a drink are chosen.
+These functions are written differently because in iTasks we use the maybe type and pattern matching, while we use \lua{nil} in LTasks.
 
 \begin{figure}[ht]
 \begin{subfigure}{\textwidth}
@@ -92,6 +93,25 @@ Let us set aside the differences in visual display for now (LTasks uses a textua
 
 \begin{figure}
 \centering
+\begin{subfigure}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast.png}
+    \caption{The UI showing all input fields at once.}
+    \label{fig:comparison_itask_ui_1}
+\end{subfigure}
+\hspace{0.05\textwidth}
+\begin{subfigure}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast-view.png}
+    \caption{The UI showing the output after selecting \lua{true} for \lua{makeSandwich}.}
+    \label{fig:comparison_itask_ui_2}
+\end{subfigure}
+\caption{The graphical web UI of iTasks.}
+\label{fig:comparison_itask_ui}
+\end{figure}
+
+\begin{figure}
+\centering
 \begin{subfigure}{0.8\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/screenshot-ltasks-breakfast.png}
@@ -109,21 +129,7 @@ Let us set aside the differences in visual display for now (LTasks uses a textua
 \label{fig:comparison_ltask_ui}
 \end{figure}
 
-\begin{figure}
-\centering
-\begin{subfigure}{0.45\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast.png}
-    \caption{The UI showing all input fields at once.}
-    \label{fig:comparison_itask_ui_1}
-\end{subfigure}
-\hspace{0.05\textwidth}
-\begin{subfigure}{0.45\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/screenshot-itasks-breakfast-view.png}
-    \caption{The UI showing the output after selecting \lua{true} for \lua{makeSandwich}.}
-    \label{fig:comparison_itask_ui_2}
-\end{subfigure}
-\caption{The graphical web UI of iTasks.}
-\label{fig:comparison_itask_ui}
-\end{figure}
+\section{When to use which}
+In general, LTasks is more suited for problems that have a large dynamic aspect, and for quick prototyping. Such a dynamic problem can be allowing users to enter a date in multiple formats. It is useful for quick prototyping, because you do not need to first define the types and derive the right classes, as you would in iTasks (see the date example in \ref{appendix-dates-itasks}).
+
+Bringing TOP to Lua is not all sunshine and roses, though. The small standard library of Lua means that you need to define some functions yourself, while they are provided in Clean. In the date example (\ref{appendix-dates}), Clean has the \clean{elemIndex} function, which needs to be defined manually with LTasks. We disregard the \clean{parseDate} function added by iTasks here, because LTasks is only a proof of concept. Lastly, while Lua is more free in what you can do, Clean---being statically typed---provides some static guarantees, which is important in some situations.

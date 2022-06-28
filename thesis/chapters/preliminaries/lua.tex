@@ -62,7 +62,7 @@ local hello = table.concat(array, " ") .. "!"
 -- Print "Hello world from Lua!" to stdout
 print(hello)
 \end{minted}
-\caption{Using tables as arrays}
+\caption{Using tables as lists}
 \label{lst:lua_tables}
 \end{figure}
 
@@ -72,7 +72,7 @@ In Lua, functions are first-class values. In fact, the function definition state
 
 Functions can return multiple values at once. For example in the standard library, \lua{coroutine.resume()} (see \ref{section-lua-coroutines}) returns a success status, followed by the result values. Returning multiple values is done like this: \lua{return 10, 20}. On assignment, any extra values are ignored, e.g. \lua{result = coroutine.resume(co)} ignores anything after the first return value. Extra values are also ignored if the function call is wrapped in parentheses, or when it is followed by another expression. That means \lua{y} will be \lua{nil} here: \lua{x, y = (coroutine.resume(co))} and here: \lua{x, y = coroutine.resume(co), nil}.
 
-Functions are also closures: they have access to the local variables of an enclosing function. An example of this can be seen in listing \ref{lst:lua_vararg}.
+Functions are also closures: they have access to the local variables of an enclosing scope. An example of this can be seen in listing \ref{lst:lua_vararg}.
 
 Functions can also take a variable number of arguments, using a vararg expression. Adding \lua{...} to the end of a function's signature turns it into a vararg function, and you can then use \lua{...} anywhere directly inside the function to represent the extra arguments passed to the function. \lua{...} is not a first-class citizen, though: it is not possible to use it inside an inner function. To get around that, it is common to put the vararg in a table. A useful function from the standard library is \lua{select(index, ...)}\footnote{\url{https://www.lua.org/manual/5.4/manual.html\#pdf-select}}, which is a vararg function itself. It has two uses: when \texttt{index} is the string \lua{"#"}, it returns the number of arguments. When it is a number, it returns all arguments after that index.
 

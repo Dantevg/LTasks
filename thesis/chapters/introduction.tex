@@ -16,12 +16,13 @@
 % Close the introduction with a paragraph in which the content of the next chapters
 % is briefly mentioned (one sentence per chapter). 
 
-Task Oriented Programming (TOP) is a programming paradigm where code is structured using \textit{tasks}. Currently, the implementations of TOP are written as a shallowly embedded DSL in the functional language Clean. This gives programming in TOP a functional taste, since using these implementations means using features of the functional host language.
+Task Oriented Programming (TOP) is a programming paradigm where code is structured using \textit{tasks}. Currently, the implementations of TOP are written as a shallowly embedded DSL in the pure, lazy, strongly typed, functional language Clean. This gives programming in TOP a functional taste, since using these implementations means using features of the functional host language.
 
-In this thesis we break away the concept of TOP from its functional implementation by asking how we can develop a task oriented programming implementation in the procedural language Lua.
+In this thesis we break away the concept of TOP from its functional implementation by asking how we can develop a task oriented programming implementation in the interpreted and dynamically typed procedural language Lua.
+This implementation in Lua will give programming in TOP a more procedural feel.
 By placing TOP in an environment that is radically different than Clean, we can see what new and interesting design decisions appear that were not clear when using Clean.
 
-We first go over the preliminary knowledge in chapter \ref{preliminaries}, where we find the essence of TOP and give a brief introduction to Lua. In chapter \ref{research} we explore the design space of implementing TOP in Lua. With that information, we create a proof-of-concept implementation called LTasks for which we explain the choices made and how it is implemented. We compare this implementation to iTasks in chapter \ref{comparison}. Chapter \ref{relatedwork} lists the related work, and we conclude the thesis in chapter \ref{conclusions}. Lastly, appendix \ref{appendix-examples} contains code examples in both LTasks and iTasks and appendix \ref{appendix-ltask} has the most important code files for LTasks.
+We first go over the preliminary knowledge in chapter \ref{preliminaries}, where we find the essence of TOP and give a brief introduction to Lua. In chapter \ref{research} we explore the design space of implementing TOP in Lua. With that information, we create a proof-of-concept implementation called LTasks for which we explain the choices made and how it is implemented. We compare this implementation to iTasks (one of the current implementations in Clean) in chapter \ref{comparison}. Chapter \ref{relatedwork} lists the related work, and we conclude the thesis in chapter \ref{conclusions}. Lastly, appendix \ref{appendix-examples} contains code examples in both LTasks and iTasks and appendix \ref{appendix-ltask} has the most important code files for LTasks.
 
 % What this thesis does:
 % \begin{itemize}

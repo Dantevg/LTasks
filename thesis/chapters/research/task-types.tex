@@ -1,6 +1,5 @@
 \section{Task types}\label{section-types}
-
-Lua is dynamically typed, so a variable or field can hold any type of value at any point in time. A function can take any number of arguments and return any number of values of any type. Type information is also not attached to variables/fields, but to the values. The consequence of this is that there is no type information present when there are no values yet---a field in a table without any value (i.e. the table key is assigned \lua{nil}) simply does not exist.
+Lua is dynamically typed, so a variable or table field can hold any type of value at any point in time. A function can take any number of arguments and return any number of values of any type. Type information is also not attached to variables/fields, but to the values. The consequence of this is that there is no type information present when there are no values yet---a field in a table without any value (i.e. the table key is assigned \lua{nil}) simply does not exist.
 iTasks uses types to automatically create editor UI and to validate task inputs, but that is not possible in Lua by default. Because of this fundamental difference between Clean and Lua, we need to rethink and redesign the TOP concepts as used in iTasks. Below we explore the design space.
 
 \subsection{Adding types}\label{section-types-adding}
@@ -22,7 +21,7 @@ This is a versatile way to enter information, compared to the static types of Cl
     \item Two number fields \lua{year} and \lua{day}, and a string field \lua{month}:\\\lua{{year = 2022, month = "march", day = 31}}
 \end{itemize}
 
-This does make use of dynamic typing, but I doubt this is really useful. Especially the usability is a problem since the user has to select the right editor type manually. This problem is even more apparent for composite data structures: imagine as a user having to create an editor for a person with a birthday:
+This does make use of dynamic typing, but I doubt this is really useful. Especially the usability is a problem since the user has to select the right editor type manually. This problem is even more apparent for composite data structures: imagine as a user having to create an editor for a person with a birthday from scratch:
 
 \medskip\noindent
 \begin{minted}{lua}
